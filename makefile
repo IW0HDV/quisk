@@ -19,5 +19,8 @@ soapy2:
 soapy3:
 	(cd soapypkg; make soapy3)
 
+perseus3:
+	(cd perseuspkg; make perseus3)
+
 macports:
 	env ARCHFLAGS="-arch x86_64" python setup.py build_ext --force --inplace -D USE_MACPORTS

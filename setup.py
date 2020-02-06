@@ -155,7 +155,7 @@ N1MM+ and software that uses Hamlib.
 	author_email = 'jahlstr@gmail.com',
 	url = 'http://james.ahlstrom.name/quisk/',
 	packages = ['quisk', 'quisk.sdriqpkg', 'quisk.n2adr', 'quisk.softrock', 'quisk.freedvpkg',
-		'quisk.hermes', 'quisk.hiqsdr', 'quisk.afedrinet', 'quisk.soapypkg'],
+		'quisk.hermes', 'quisk.hiqsdr', 'quisk.afedrinet', 'quisk.soapypkg', 'quisk.perseuspkg'],
 	package_dir =  {'quisk' : '.'},
 	package_data = {'' : ['*.txt', '*.html', '*.so', '*.dll']},
 	entry_points = {'gui_scripts' : ['quisk = quisk.quisk:main', 'quisk_vna = quisk.quisk_vna:main']},

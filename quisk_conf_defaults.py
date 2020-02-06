@@ -574,6 +574,22 @@ AlexLPF_TxEn = False
 #AlexLPF_TxEn = True
 
 
+################ Receivers PerseusSDR, The PerseusSDR interface to multiple hardware SDRs.
+## hardware_file_name		Hardware file path, rfile
+# This is the file that contains the control logic for each radio.
+hardware_file_name = 'perseuspkg/quisk_hardware.py'
+
+## widgets_file_name			Widget file path, rfile
+# This optional file adds additional controls for the radio.
+#widgets_file_name = ''
+
+## use_perseus	Use PerseusSDR, integer
+# Enter 1 to turn on PerseusSDR.
+use_perseus = 1
+
+# Further items are present in the radio dictionary with names perseus_*
+
+
 ################ Receivers SoapySDR, The SoapySDR interface to multiple hardware SDRs.
 ## hardware_file_name		Hardware file path, rfile
 # This is the file that contains the control logic for each radio.
