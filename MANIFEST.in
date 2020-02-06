@@ -1,0 +1,10 @@
+include  *.c  *.h  *.py  *.pyw  *.txt  *.html  *.dll  *.pyd  makefile quisk MANIFEST.in
+graft    afedrinet
+graft    freedvpkg
+graft    hermes
+graft    hiqsdr
+graft    n2adr
+graft    sdriqpkg
+graft    softrock
+graft    soapypkg
+global-exclude *.pyc
