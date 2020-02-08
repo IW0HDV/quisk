@@ -12,6 +12,7 @@ quisk3:
 	python3 setup.py build_ext --force --inplace
 	@echo
 	@echo 'Use "make soapy3" to make the Python3 soapy module'
+	@echo 'Use "make perseus3" to make the Python3 perseus package'
 
 soapy2:
 	(cd soapypkg; make soapy2)

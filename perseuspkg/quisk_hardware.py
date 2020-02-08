@@ -11,7 +11,7 @@ try:
 except:
   #traceback.print_exc()
   perseus = None
-  print ("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n")
+  print ("Error: Perseus package not found.\n")
 
 from quisk_hardware_model import Hardware as BaseHardware
 
@@ -20,12 +20,33 @@ DEBUG = 1
 class Hardware(BaseHardware):
   def __init__(self, app, conf):
     BaseHardware.__init__(self, app, conf)
+
+    self.rf_gain_labels = ('RF +0', 'RF -10', 'RF -20', 'RF -30')
+    self.antenna_labels = ('Wide Band', 'Band Filter')
+
     self.vardecim_index = 0
     self.fVFO = 0.0	# Careful, this is a float
-    #print ("__init__: " % conf)
-    perseus = True
-    self.decimation = [48000, 96000, 192000, 384000]
-    self.current_dec = 192000
+    print ("__init__: %s" % conf)
+    self.rates = [ 48000,   \
+                   95000,   \
+                   96000,   \
+                   125000,  \
+                   192000,  \
+                   250000,  \
+                   500000,  \
+                   1000000, \
+                   1600000, \
+                   2000000  \
+                   ]
+    self.current_rate = 192000
+    self.att = 0;
+    self.wb = 0
+    
+    def __del__(self):
+        # try to clear hardware
+        if perseus:
+            perseus.close()
+            perseus.deinit()
 
   def pre_open(self):
     print ("pre_open")
@@ -40,70 +61,33 @@ class Hardware(BaseHardware):
       return "Perseus module not available"
 
     txt = perseus.open_device("perseus",2,3)
-    print ("OOOOOOOOOOOOOOOOOOOOOOO\n")
- 
-#    
-#    radio_dict = self.application.local_conf.GetRadioDict()
-#    device = radio_dict.get('soapy_device', '')
-#    if radio_dict.get('soapy_enable_tx', '') == "Enable":
-#      txt = soapy.open_device(device, 1, self.conf.data_poll_usec)
-#    else:
-#      txt = soapy.open_device(device, 3, self.conf.data_poll_usec)	# Tx is disabled
-#    for name in ('soapy_setAntenna_rx', 'soapy_setAntenna_tx'):
-#      value = radio_dict.get(name, '')		# string values
-#      self.set_parameter(name, value, 0.0)
-#    for name in ('soapy_setBandwidth_rx', 'soapy_setBandwidth_tx', 'soapy_setSampleRate_rx', 'soapy_setSampleRate_tx'):
-#      value = radio_dict.get(name, '')
-#      try:
-#        value = float(value) * 1E3	# these are in KHz
-#      except:
-#        pass
-#      else:
-#        self.set_parameter(name, '', value)
-#        if name == 'soapy_setSampleRate_tx':
-#          value = int(value + 0.1)
-#          QS.set_tx_audio(tx_sample_rate=value)
-#    self.ChangeGain('_rx')
-#    self.ChangeGain('_tx')
-#    #for name in ('soapy_getSampleRate_rx', 'soapy_getSampleRate_tx', 'soapy_getBandwidth_rx', 'soapy_getBandwidth_tx'):
-#    #  print ('Get ***', name, soapy.get_parameter(name, 1))
+    print ("perseus hardware: open")
+
     return txt
+
+  def close(self):			# Called once to close the Hardware
+    print ("perseus hardware: close")
+    if perseus:
+      perseus.close_device(1)
 
   def ChangeGain(self, rxtx):	# rxtx is '_rx' or '_tx'
     if not perseus:
       return
-    print ("ChangeGain", rxtx)
+    print ("perseus hardware: ChangeGain", rxtx)
     pass
 
-#    radio_dict = self.application.local_conf.GetRadioDict()
-#    gain_mode = radio_dict['soapy_gain_mode' + rxtx]
-#    gain_values = radio_dict['soapy_gain_values' + rxtx]
-#    if gain_mode == 'automatic':
-#      self.set_parameter('soapy_setGainMode' + rxtx, 'true', 0.0)
-#    elif gain_mode == 'total':
-#      self.set_parameter('soapy_setGainMode' + rxtx, 'false', 0.0)
-#      gain = gain_values.get('total', '0')
-#      gain = float(gain)
-#      self.set_parameter('soapy_setGain' + rxtx, '', gain)
-#    elif gain_mode == 'detailed':
-#      self.set_parameter('soapy_setGainMode' + rxtx, 'false', 0.0)
-#      for name, dmin, dmax, dstep in radio_dict.get('soapy_listGainsValues' + rxtx, ()):
-#        if name == 'total':
-#          continue
-#        gain = gain_values.get(name, '0')
-#        gain = float(gain)
-#        self.set_parameter('soapy_setGainElement' + rxtx, name, gain)
-
-  def close(self):			# Called once to close the Hardware
-    if perseus:
-      perseus.close_device(1)
+  def OnButtonRfGain(self, event):
+    #btn = event.GetEventObject()
+    n = event.GetEventObject().index
+    self.att = n * -10
+    print ("perseus hardware: OnButtonRfGain: %d new attenuation: %d" % (n, self.att))
+    perseus.set_attenuator (self.att)
 
   def ChangeFrequency(self, tune, vfo, source='', band='', event=None):
     fVFO = float(vfo)
     if self.fVFO != fVFO:
       self.fVFO = fVFO
       perseus.set_frequency(fVFO)
-    #self.set_parameter('soapy_setFrequency_tx', '', float(tune))
     return tune, vfo
 
 
@@ -118,120 +102,73 @@ class Hardware(BaseHardware):
     # You can return None to indicate that the integer VFO frequency is valid.
     return self.fVFO
 
-  def OnBtnFDX(self, fdx):	# fdx is 0 or 1
-    pass
-    #if soapy:
-    #  self.set_parameter('soapy_FDX', '', float(fdx))
-
-  def OnButtonPTT(self, event):
-    pass
-#    btn = event.GetEventObject()
-#    if btn.GetValue():
-#      QS.set_PTT(1)
-#      QS.set_key_down(1)
-#    else:
-#      QS.set_PTT(0)
-#      QS.set_key_down(0)
-
-  def OnSpot(self, level):
-    # level is -1 for Spot button Off; else the Spot level 0 to 1000.
-    pass
-
-  def ChangeMode(self, mode):		# Change the tx/rx mode
-    # mode is a string: "USB", "AM", etc.
-    pass
-
-  def ChangeBand(self, band):
-    print ("perseus: band: %s" % band)
-    pass
-    # band is a string: "60", "40", "WWV", etc.
-    #try:
-    #  self.transverter_offset = self.conf.bandTransverterOffset[band]
-    #except:
-    #  self.transverter_offset = 0
-
-  def HeartBeat(self):	# Called at about 10 Hz by the main
-    pass
+#  def OnBtnFDX(self, fdx):	# fdx is 0 or 1
+#    pass
+#
+#  def OnButtonPTT(self, event):
+#    pass
+#
+#  def OnSpot(self, level):
+#    # level is -1 for Spot button Off; else the Spot level 0 to 1000.
+#    pass
+#
+#  def ChangeMode(self, mode):		# Change the tx/rx mode
+#    # mode is a string: "USB", "AM", etc.
+#    pass
+#
+#  def ChangeBand(self, band):
+#    pass
+#
+#  def HeartBeat(self):	# Called at about 10 Hz by the main
+#    pass
 
   def ImmediateChange(self, name, value):
-    print ("ImmediateChange: perseus: name: %s value: %s" % (name, value))
+    print ("perseus hardware: ImmediateChange: perseus: name: %s value: %s" % (name, value))
     if name == 'perseus_setSampleRate_rx':
           value = int(value)
           self.application.OnBtnDecimation(rate=value)
           perseus.set_sampling_rate(value)
           self.curren_dec = value
-          
-#    if name in ('soapy_gain_mode_rx', 'soapy_gain_mode_tx'):
-#      self.ChangeGain(name[-3:])
-#    elif name in ('soapy_setAntenna_rx', 'soapy_setAntenna_tx'):
-#      self.set_parameter(name, value, 0.0)	# string values
-#    elif name in ('soapy_setBandwidth_rx', 'soapy_setBandwidth_tx', 'soapy_setSampleRate_rx', 'soapy_setSampleRate_tx'):
-#      try:
-#        value = float(value) * 1E3	# kHz values
-#      except:
-#        pass
-#      else:
-#        self.set_parameter(name, '', value)
-#        if name == 'soapy_setSampleRate_tx':
-#          value = int(value + 0.1)
-#          QS.set_tx_audio(tx_sample_rate=value)
-#        elif name == 'soapy_setSampleRate_rx':
-#          value = int(value + 0.1)
-#          self.application.OnBtnDecimation(rate=value)
-#          self.set_parameter('soapy_setFrequency_rx', '', self.fVFO)	# driver Lime requires reset of Rx freq on sample rate change
-  # The "VarDecim" methods are used to change the hardware decimation rate.
-  # If VarDecimGetChoices() returns any False value, no other methods are called.
+
 
   def VarDecimGetChoices(self):	# Not used to set sample rate
-      print ("VarDecimGetChoices")
-      return ["48000", "96000", "192000", "384000"]
-      return ["None"]
+    print ("perseus hardware: VarDecimGetChoices")
+    return list(map(str, self.rates)) # convert integer to string
 
   def VarDecimGetLabel(self):	# Return a text label for the decimation control.
-    print ("VarDecimGetLabel")
-    return 'Rx rate: Use PerseusSDR config'
+    return 'Sample rates: '
 
   def VarDecimGetIndex(self):	# Return the index 0, 1, ... of the current decimation.
-      for i in range(len(self.decimation)):
-          if self.decimation[i] == self.current_dec:
+      for i in range(len(self.rates)):
+          if self.rates[i] == self.current_rate:
               return i
       return 0
 
   def VarDecimSet(self, index=None):	# Called when the control is operated; if index==None, called on startup.
-     
-      print ("VarDecimSet: index: %s" % (index))
-
-      name = 'perseus_setSampleRate_rx'
-      radio_dict = self.application.local_conf.GetRadioDict()
-      rate = radio_dict.get(name, 48)	# this is in KHz
-      try:
-         print (rate)
-         rate = float(self.decimation[index])
-         #rate = int(rate + 0.1)
-         self.current_dec = rate
-      except:
-         rate = self.current_dec
-
-      print (rate)
-      perseus.set_sampling_rate(int(rate))
-      return int(rate)
-
-      
+      print ("perseus hardware: VarDecimSet: index: %s" % (index))
       if index == None:
-          return self.current_dec
+          print ("perseus hardware: VarDecimSet: current sampling rate: %d" % self.current_rate)
+          new_rate = self.current_rate
       else:
-          self.current_dec = self.decimation[index]
-          return self.decimation[index]
-#    
-#    name = 'soapy_setSampleRate_rx'
-#    radio_dict = self.application.local_conf.GetRadioDict()
-#    rate = radio_dict.get(name, 48)	# this is in KHz
-#    try:
-#      rate = float(rate) * 1E3
-#      rate = int(rate + 0.1)
-#    except:
-#      rate = 48000
-#    return rate
+          new_rate = self.rates[index]
+
+      print ("perseus hardware: VarDecimSet: New sampling rate: %d" % new_rate)
+      perseus.set_sampling_rate(int(new_rate))
+
+      return int(new_rate)
+
   def VarDecimRange(self):  # Return the lowest and highest sample rate.
-        print ("VarDecimRange: 48000, 96000, 192000, 384000")
-        return 48000, 96000, 192000, 384000
+      print ("perseus hardware: VarDecimRange: %s" % self.rates)
+      return (self.rates[0], self.rates[-1])
+
+  def OnButtonAntenna(self, event):
+    btn = event.GetEventObject()
+    self.wb_filter = n = btn.index
+    print ("OnButtonAntenna: %d" % n)
+    perseus.set_input_filter (self.wb_filter)
+    
+#  def StartSamples(self):	# called by the sound thread
+    print("perseus hardware: StartSamples")
+
+  def StopSamples(self):	# called by the sound thread
+    print("perseus hardware: StopSamples")
