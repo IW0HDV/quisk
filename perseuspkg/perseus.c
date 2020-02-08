@@ -56,6 +56,8 @@ static int num_perseus = 0;
 static 	perseus_descr *descr = 0;
 static int sr = 48000;
 static float freq = 7050000.0;
+static int adc_dither = 0;
+static int adc_preamp = 0;
 
 static void quisk_stop_samples(void);
 
@@ -271,12 +273,15 @@ static PyObject * open_device(PyObject * self, PyObject * args)
 		fprintf(stderr, "perseus c: fpga configuration error: %s\n", perseus_errorstr());
 		goto main_cleanup;
 	}
+
+	// ADC settings
+	perseus_set_adc (descr, adc_dither, adc_preamp);
 	
 	// Disable preselection filters (WB_MODE On)
-	perseus_set_ddc_center_freq(descr, freq, 0);
-	sleep(1);
+	//perseus_set_ddc_center_freq(descr, freq, 0);
+	//sleep(1);
 	// Re-enable preselection filters (WB_MODE Off)
-	perseus_set_ddc_center_freq(descr, freq, 1);
+	perseus_set_ddc_center_freq(descr, freq, wb_filter);
 	
 	quisk_sample_source4(&quisk_start_samples, &quisk_stop_samples, &quisk_read_samples, &quisk_write_samples);
 	
@@ -382,6 +387,48 @@ static PyObject * set_attenuator(PyObject * self, PyObject * args)	// Called fro
 }
 
 
+// Enable ADC Dither, Disable ADC Preamp
+//	perseus_set_adc(descr, true, false);
+
+static PyObject * set_adc_dither (PyObject * self, PyObject * args)	// Called from GUI thread
+{	int dither_;
+
+	if (!PyArg_ParseTuple (args, "i", &dither_))
+		return NULL;
+	if (DEBUG)
+		fprintf (stderr, "perseus c: Set ADC: dither %d\n", dither_);
+
+	adc_dither = dither_;
+	if (descr) {
+		// specify the ADC dithering
+		if (perseus_set_adc(descr, adc_dither == 1, adc_preamp == 1) < 0) {
+			fprintf(stderr, "perseus c: ADC configuration error: %s\n", perseus_errorstr());
+		}
+	}
+	Py_INCREF (Py_None);
+	return Py_None;
+}
+
+static PyObject * set_adc_preamp (PyObject * self, PyObject * args)	// Called from GUI thread
+{	int preamp_;
+
+	if (!PyArg_ParseTuple (args, "i", &preamp_))
+		return NULL;
+	if (DEBUG)
+		fprintf (stderr, "perseus c: Set ADC: preamp: %d\n", preamp_);
+
+	adc_preamp = preamp_;
+	if (descr) {
+		// specify the sampling rate value in Samples/secon
+		if (perseus_set_adc(descr,  adc_dither == 1, adc_preamp == 1) < 0) {
+			fprintf(stderr, "perseus c: ADC configuration error: %s\n", perseus_errorstr());
+		}
+	}
+	Py_INCREF (Py_None);
+	return Py_None;
+}
+
+
 static PyObject * deinit(PyObject * self, PyObject * args)	// Called from dctor
 {
 	perseus_exit();
@@ -399,6 +446,8 @@ static PyMethodDef QuiskMethods[] = {
 	{"set_input_filter", set_input_filter, METH_VARARGS, "set input filter"},
 	{"set_sampling_rate", set_sampling_rate, METH_VARARGS, "set sampling rate"},
 	{"set_attenuator", set_attenuator, METH_VARARGS, "set attenuator"},
+	{"set_adc_dither", set_adc_dither, METH_VARARGS, "set ADC dither"},
+	{"set_adc_preamp", set_adc_preamp, METH_VARARGS, "set ADC preamplifier"},
 	{"deinit", deinit, METH_VARARGS, "deinit"},
 //	{"get_device_list", get_device_list, METH_VARARGS, "Return a list of Perseus SDR devices"},
 	{NULL, NULL, 0, NULL}		/* Sentinel */

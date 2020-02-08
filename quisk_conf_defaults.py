@@ -581,7 +581,7 @@ hardware_file_name = 'perseuspkg/quisk_hardware.py'
 
 ## widgets_file_name			Widget file path, rfile
 # This optional file adds additional controls for the radio.
-#widgets_file_name = ''
+widgets_file_name = 'perseuspkg/quisk_widgets.py'
 
 ## use_perseus	Use PerseusSDR, integer
 # Enter 1 to turn on PerseusSDR.

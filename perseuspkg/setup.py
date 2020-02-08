@@ -23,7 +23,7 @@ setup	(name = 'perseus',
 	description = 'perseus is an extension to Quisk to support Microtelecom Perseus SDR hardware',
 	long_description = """Microtelecom Perseus SDR HF receiver.
 """,
-	author = 'Andrea Montefusco',
+	author = 'Andrea Montefusco IW0HDV',
 	author_email = 'andrew@montefusco.com',
 	url = 'http://www.montefusco.com',
 	download_url = 'http://james.ahlstrom.name/quisk/',

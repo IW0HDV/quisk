@@ -48,6 +48,9 @@ class Hardware(BaseHardware):
             perseus.close()
             perseus.deinit()
 
+  def get_hw (self):
+      return perseus
+
   def pre_open(self):
     print ("pre_open")
     pass
@@ -168,7 +171,7 @@ class Hardware(BaseHardware):
     perseus.set_input_filter (self.wb_filter)
     
 #  def StartSamples(self):	# called by the sound thread
-    print("perseus hardware: StartSamples")
+#    print("perseus hardware: StartSamples")
 
-  def StopSamples(self):	# called by the sound thread
-    print("perseus hardware: StopSamples")
+#  def StopSamples(self):	# called by the sound thread
+#    print("perseus hardware: StopSamples")
