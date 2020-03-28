@@ -17,15 +17,12 @@ class BottomWidgets:	# Add extra widgets to the bottom of the screen
     self.start_row = app.widget_row			# The first available row
     self.start_col = app.button_start_col	# The start of the button columns
     self.Widgets_0x06(app, hardware, conf, frame, gbs, vertBox)
-    
-    print ("WWWWWWWWWWWWWWWWWWWWWW")
 
   def Widgets_0x06(self, app, hardware, conf, frame, gbs, vertBox):
     self.num_rows_added = 1
     start_row = self.start_row
     b1 = app.QuiskCheckbutton(frame, self.OnADC_dither, 'ADC Dither')
     gbs.Add(b1, (start_row, self.start_col), (1, 2), flag=wx.EXPAND)
-    #########bw, bh = b1.GetMinSize()
     b2 = app.QuiskCheckbutton(frame, self.OnADC_preamp, 'ADC Preamp')
     gbs.Add(b2, (start_row, self.start_col + 2), (1, 2), flag=wx.EXPAND)
     
