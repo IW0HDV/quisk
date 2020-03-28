@@ -3347,17 +3347,15 @@ static int read_rx_udp10(complex double * samp)	// Read samples from UDP using t
 	unsigned int seq;
 	unsigned int hlwp = 0;
 	static unsigned int seq0;
-	static int key_state;
 	static int tx_records;
 	static int max_multirx_count=0;
-	int i, j, nSamples, xr, xi, index, start, want_samples, dindex, state, num_records;
+	int i, j, nSamples, xr, xi, index, start, want_samples, dindex, num_records;
 	complex double c;
 	struct timeval tm_wait;
 	fd_set fds;
 
 	if ( ! quisk_hermes_is_ready(rx_udp_socket)) {
 		seq0 = 0;
-		key_state = 0;
 		tx_records = 0;
 		quisk_rx_udp_started = 0;
 		multirx_fft_next_index = 0;
@@ -3501,23 +3499,8 @@ static int read_rx_udp10(complex double * samp)	// Read samples from UDP using t
 				//code_version = quisk_hermes_to_pc[3];
 				if ((quisk_hermes_to_pc[0] & 0x01) != 0)	// C1
 					quisk_sound_state.overrange++;
-				if (quisk_hermes_code_version >= 62) {
-					hardware_ptt = buf[start] & 0x01;	// C0 bit zero is PTT
-					hardware_cwkey = (buf[start] & 0x02) >> 1;	// C0 bit one is CW key state
-				}
-				else {
-					hardware_cwkey = buf[start] & 0x01;	// C0 bit zero is CW key state
-				}
-				if (rxMode == CWL || rxMode == CWU) {
-					state = hardware_cwkey | is_PTT_down;
-				}
-				else {
-					state = is_PTT_down;
-				}
-				if (state != key_state) {
-					key_state = state;
-					quisk_set_key_down(state);
-				}
+				hardware_ptt = buf[start] & 0x01;	// C0 bit zero is PTT
+				hardware_cwkey = (buf[start] & 0x04) >> 2;	// C0 bit two is CW key state
 			}
 			else if(dindex == 1) {	// temperature and forward power
 				hermes_temperature += quisk_hermes_to_pc[4] << 8 | quisk_hermes_to_pc[5];
@@ -4548,14 +4531,18 @@ static PyObject * get_multirx_graph(PyObject * self, PyObject * args)	// Called 
 	return retrn;
 }
 
-static PyObject * get_bandscope(void)	// Called by the GUI thread
+static PyObject * get_bandscope(PyObject * self, PyObject * args)	// Called by the GUI thread
 {
-	int i, j, j1, j2, L;
+	int i, j, j1, j2, L, clock;
+	double zoom, deltaf, rate, f1;
 	static int fft_count = 0;
 	static double the_max = 0;
 	static double time0=0;			// time of last graph
 	double d1, d2, sample, frac, scale;
 	PyObject * tuple2;
+
+	if (!PyArg_ParseTuple (args, "idd", &clock, &zoom, &deltaf))
+		return NULL;
 
 	if (bandscopeState == 99 && bandscopePlan) {	// bandscope samples are ready
 		for (i = 0; i < bandscope_size; i++) {
@@ -4577,9 +4564,12 @@ static PyObject * get_bandscope(void)	// Called by the GUI thread
 			tuple2 = PyTuple_New(graph_width);
 			frac = (double)L / graph_width;
 			scale = 1.0 / frac / fft_count / bandscope_size;
+			rate = clock / 2.0;
 			for (i = 0; i < graph_width; i++) {	// for each pixel
-				d1 = i * frac;
-				d2 = (i + 1) * frac;
+				f1 = deltaf + rate / 2.0 * (1.0 - zoom);	// frequency at left of graph
+				// freq = f1 + pixel / graph_width + zoom * rate = rate * fft_index / L
+				d1 = L / rate * (f1 + (double)i / graph_width * zoom * rate);
+				d2 = L / rate * (f1 + (double)(i + 1) / graph_width * zoom * rate);
 				j1 = floor(d1);
 				j2 = floor(d2);
 				if (j1 == j2) {
@@ -4627,9 +4617,6 @@ static PyObject * get_graph(PyObject * self, PyObject * args)	// Called by the G
 
 	if (!PyArg_ParseTuple (args, "idd", &k, &zoom, &deltaf))
 		return NULL;
-	if (k == 2) {
-		return get_bandscope();
-	}
 	if (k != use_fft) {		// change in data return type; re-initialize
 		use_fft = k;
 		count_fft = 0;
@@ -5183,6 +5170,7 @@ static PyMethodDef QuiskMethods[] = {
 	{"is_key_down", is_key_down, METH_VARARGS, "Check whether the key is down; return 0 or 1."},
 	{"get_state", get_state, METH_VARARGS, "Return a count of read and write errors."},
 	{"get_graph", get_graph, METH_VARARGS, "Return a tuple of graph data."},
+	{"get_bandscope", get_bandscope, METH_VARARGS, "Return a tuple of bandscope data."},
 	{"set_multirx_mode", set_multirx_mode, METH_VARARGS, "Select demodulation mode for sub-receivers."},
 	{"set_multirx_freq", set_multirx_freq, METH_VARARGS, "Select how to play audio from sub-receivers."},
 	{"set_multirx_play_method", set_multirx_play_method, METH_VARARGS, "Select how to play audio from sub-receivers."},

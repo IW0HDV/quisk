@@ -1,3 +1,15 @@
+Quisk Version 4.1.53  March 2020
+================================
+I changed the Afedri radio module to be compatible with Python3. The graph Zoom feature now is available
+on the Bandscope screen. Vladimyr Burdeiny provided a patch to make dx cluster work with Python 3.
+
+I extended the range of the Waterfall color controls Ys and Yz to accommodate hardware with a higher
+noise floor such as PlutoSDR. You will have to readjust your waterfall colors.
+
+I added a hardware setting for the LNA gain during transmit for the HL2. I made some changes to the CW
+and PTT hardware interface for the HL2. These work great with the HL2, but test the new code if you have
+diferent Hermes hardware such as Red Pitaya.
+
 Quisk Version 4.1.52  December 2019
 ===================================
 I added an On/Off button to Quisk. When Quisk starts the button is "On". When you turn it to "Off",
@@ -7,8 +19,8 @@ and to re-start your hardware after a power down.
 
 Martin Schaller found and fixed a bug in the Alsa sound system that produced sporadic crashes. Thanks Martin!
 Max, G7UOZ, found and fixed a bug in the Python3 SoftRock hardware_net.py code. Thanks Max!
-This Quisk includes a more recent FreeDV library in both 32-bit and 64-bit versions. The SoapySDR interface
-still requires 64-bit Quisk.
+This Quisk includes a more recent FreeDV library in both 32-bit and 64-bit versions. The Windows
+SoapySDR interface still requires 64-bit Quisk.
 
 The Config/Status screen now shows the dB level of each open sound device. The maximum level is zero dB.
 This is meant as an aid to configuring the sound devices.

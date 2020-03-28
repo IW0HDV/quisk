@@ -1106,7 +1106,9 @@ class BaseWindow(wx.ScrolledWindow):
           application.Hardware.SetLowPwrEnable(x)
         elif name == 'hermes_power_amp':
           application.Hardware.EnablePowerAmp(x)
-        elif name == "hermes_bias_adjust":
+        elif name == 'hermes_TxLNA_dB':
+          application.Hardware.ChangeTxLNA(x)
+        elif name == "hermes_bias_adjust" and self.HermesBias0:
           self.HermesBias0.Enable(x)
           self.HermesBias1.Enable(x)
           self.HermesWriteBiasButton.Enable(x)
@@ -1424,6 +1426,8 @@ class RadioHardware(RadioHardwareBase):		# The Hardware page in the second-level
   def __init__(self, parent, radio_name):
     RadioHardwareBase.__init__(self, parent, radio_name)
     self.AlwaysMakeControls()
+    self.HermesBias0 = None
+    self.HermesBias1 = None
     radio_dict = local_conf.GetRadioDict(radio_name)
     radio_type = radio_dict['hardware_file_type']
     data_names = local_conf.GetReceiverData(radio_type)
@@ -1435,7 +1439,7 @@ class RadioHardware(RadioHardwareBase):		# The Hardware page in the second-level
         hermes_board_id = application.Hardware.hermes_board_id
       except:
         pass
-    if hasattr(application.Hardware, "ProgramGateware"):
+    if radio_name == Settings[1] and hasattr(application.Hardware, "ProgramGateware"):
       help_text = "Choose an RBF file and program the Gateware (FPGA software) over Ethernet."
       self.AddTextButtonHelp(1, "Gateware Update", "Program from RBF file..", application.Hardware.ProgramGateware, help_text)
       col = 1

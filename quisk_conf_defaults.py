@@ -429,6 +429,11 @@ Hware_Hl2_EepromMAC = '0xA1 0x6B'
 Hware_Hl2_EepromMACUse = 'Ignore'
 #Hware_Hl2_EepromMACUse = 'Set address'
 
+## hermes_TxLNA_dB			LNA during Tx dB, integer
+# During transmit the low noise Rx amplifier gain changes to this value (in dB) if the hardware supports it.
+# Changes are immediate (no need to restart).
+hermes_TxLNA_dB = 21
+
 # These are known power meter calibration tables. This table is not present in the JSON settings file.
 power_meter_std_calibrations = {}
 power_meter_std_calibrations['HL2FilterE3'] = [[ 0, 0.0 ], [ 25.865384615384617, 0.0025502539351328003 ], [ 101.02453987730061, 0.012752044999999998 ], 
