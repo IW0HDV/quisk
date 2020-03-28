@@ -857,6 +857,7 @@ class ConfigScreen(wx.Panel):
   def __init__(self, parent, width, fft_size):
     self.y_scale = 0
     self.y_zero = 0
+    self.zoom_control = 0
     self.finish_pages = True
     self.width = width
     wx.Panel.__init__(self, parent)
@@ -920,6 +921,7 @@ class ConfigStatus(wx.ScrolledWindow):
     self.latencyPlay = -1
     self.y_scale = 0
     self.y_zero = 0
+    self.zoom_control = 0
     self.rate_min = -1
     self.rate_max = -1
     self.chan_min = -1
@@ -1779,6 +1781,7 @@ class GraphScreen(wx.Window):
     else:
       self.y_scale = conf.graph_y_scale
       self.y_zero = conf.graph_y_zero
+    self.zoom_control = 0
     self.y_ticks = []
     self.VFO = 0
     self.filter_mode = 'AM'
@@ -1879,9 +1882,10 @@ class GraphScreen(wx.Window):
   def ChangeYzero(self, y_zero):
     self.y_zero = y_zero
     self.doResize = True
-  def ChangeZoom(self, zoom, deltaf):
+  def ChangeZoom(self, zoom, deltaf, zoom_control):
     self.zoom = zoom
     self.zoom_deltaf = deltaf
+    self.zoom_control = zoom_control
     self.doResize = True
   def MakeYScale(self):
     chary = self.chary
@@ -2491,14 +2495,19 @@ class WaterfallDisplay(wx.Window):
     #T('graph start')
     row = bytearray(0)		# Make a new row of pixels for a one-line image
     gain = self.rf_gain
+    # y_scale and y_zero range from zero to 160.
+    # y_zero controls the center position of the colors. Set to a bit over the noise level.
+    # y_scale controls how much the colors change when the sample deviates from y_zero.
     for x in data:	# x is -130 to 0, or so (dB)
-      l = int((x - gain + y_zero // 3 + 100) * y_scale / 10)
+      yz = 40.0 + y_zero * 0.69		# -yz is the color center in dB
+      l = int((x - gain + yz) * (y_scale + 10) * 0.10 + 128)
       l = max(l, 0)
       l = min(l, 255)
       row.append(self.red[l])
       row.append(self.green[l])
       row.append(self.blue[l])
       row.append(255)
+    #print ('OnGraphData yz %.0f, slope %.3f, l %4d' % (yz, (y_scale + 10) * 0.10, l))
     #T('graph string')
     if wxVersion in ('2', '3'):
       bmp = wx.BitmapFromBufferRGBA(len(row) // 4, 1, row)
@@ -2523,15 +2532,17 @@ class WaterfallDisplay(wx.Window):
     dc.DrawLine(tune_tx, self.margin, tune_tx, self.height)
     self.tune_tx = tune_tx
     self.tune_rx = tune_rx
-  def ChangeZoom(self, zoom, deltaf):
+  def ChangeZoom(self, zoom, deltaf, zoom_control):
     self.zoom = zoom
     self.zoom_deltaf = deltaf
+    self.zoom_control = zoom_control
 
 class WaterfallScreen(wx.SplitterWindow):
   """Create a splitter window with a graph screen and a waterfall screen"""
   def __init__(self, frame, width, data_width, graph_width):
     self.y_scale = conf.waterfall_y_scale
     self.y_zero = conf.waterfall_y_zero
+    self.zoom_control = 0
     wx.SplitterWindow.__init__(self, frame)
     self.SetSizeHints(width, -1, width)
     self.SetSashGravity(0.50)
@@ -2576,6 +2587,11 @@ class WaterfallScreen(wx.SplitterWindow):
     self.pane2.OnGraphData(data)
   def ChangeRfGain(self, gain):		# Set the correction for RF gain
     self.pane2.display.rf_gain = gain
+  def ChangeZoom(self, zoom, deltaf, zoom_control):
+    self.zoom_control = zoom_control
+    self.pane1.ChangeZoom(zoom, deltaf, zoom_control)
+    self.pane2.ChangeZoom(zoom, deltaf, zoom_control)
+    self.pane2.display.ChangeZoom(zoom, deltaf, zoom_control)
 
 class WaterfallPane(GraphScreen):
   """Create a waterfall screen with an X axis and a waterfall display."""
@@ -2583,6 +2599,7 @@ class WaterfallPane(GraphScreen):
     GraphScreen.__init__(self, frame, data_width, graph_width)
     self.y_scale = conf.waterfall_y_scale
     self.y_zero = conf.waterfall_y_zero
+    self.zoom_control = 0
     self.oldVFO = self.VFO
     self.filter_mode = 'AM'
     self.filter_bandwidth = 0
@@ -3004,6 +3021,7 @@ class ScopeScreen(wx.Window):
     self.horizPen = wx.Pen(conf.color_gl, 1, wx.SOLID)
     self.y_scale = conf.scope_y_scale
     self.y_zero = conf.scope_y_zero
+    self.zoom_control = 0
     self.yscale = 1
     self.running = 1
     self.doResize = False
@@ -3136,8 +3154,11 @@ class ScopeScreen(wx.Window):
 
 class BandscopeScreen(WaterfallScreen):
   def __init__(self, frame, width, data_width, graph_width, clock):
+    self.zoom = 1.0
+    self.zoom_deltaf = 0
+    self.zoom_control = 0
     WaterfallScreen.__init__(self, frame, width, data_width, graph_width)
-    self.pane1.sample_rate = self.pane2.sample_rate = int(clock) // 2
+    self.sample_rate = self.pane1.sample_rate = self.pane2.sample_rate = int(clock) // 2
     self.VFO = clock // 4
     self.SetVFO(self.VFO)
   def SetTxFreq(self, tx_freq, rx_freq):
@@ -3146,6 +3167,26 @@ class BandscopeScreen(WaterfallScreen):
   def SetFrequency(self, freq):		# freq is 7000000, not the offset from VFO
     freq = freq - self.VFO
     WaterfallScreen.SetTxFreq(self, freq, freq)
+  def ChangeZoom(self, zoom_control):	# zoom_control is the slider value 0 to 1000
+    self.zoom_control = zoom_control
+    if zoom_control < 50:
+      zoom = 1.0
+      zoom_deltaf = 0
+    else:
+      zoom = 1.0 - zoom_control / 1000.0 * 0.95
+      freq = application.rxFreq + application.VFO
+      srate = int(self.sample_rate * zoom)		# reduced (zoomed) sample rate
+      if freq - srate // 2 < 0:
+        zoom_deltaf = srate // 2 - self.VFO
+      elif freq + srate // 2 > self.sample_rate:
+        zoom_deltaf = self.VFO - srate // 2
+      else:
+        zoom_deltaf = freq - self.VFO
+    self.zoom = zoom
+    self.zoom_deltaf = zoom_deltaf
+    self.pane1.ChangeZoom(zoom, zoom_deltaf, zoom_control)
+    self.pane2.ChangeZoom(zoom, zoom_deltaf, zoom_control)
+    self.pane2.display.ChangeZoom(zoom, zoom_deltaf, zoom_control)
 
 class FilterScreen(GraphScreen):
   """Create a graph of the receive filter response."""
@@ -3153,6 +3194,7 @@ class FilterScreen(GraphScreen):
     GraphScreen.__init__(self, parent, data_width, graph_width)
     self.y_scale = conf.filter_y_scale
     self.y_zero = conf.filter_y_zero
+    self.zoom_control = 0
     self.VFO = 0
     self.txFreq = 0
     self.data = []
@@ -3199,6 +3241,7 @@ class AudioFFTScreen(GraphScreen):
     GraphScreen.__init__(self, parent, data_width, graph_width)
     self.y_scale = conf.filter_y_scale
     self.y_zero = conf.filter_y_zero
+    self.zoom_control = 0
     self.VFO = 0
     self.txFreq = 0
     self.sample_rate = sample_rate
@@ -3216,6 +3259,7 @@ class HelpScreen(wx.html.HtmlWindow):
     wx.html.HtmlWindow.__init__(self, parent, -1, size=(width, height))
     self.y_scale = 0
     self.y_zero = 0
+    self.zoom_control = 0
     if "gtk2" in wx.PlatformInfo:
       self.SetStandardFonts()
     self.SetFonts("", "", [10, 12, 14, 16, 18, 20, 22])
@@ -4907,6 +4951,7 @@ The new code supports multiple corrections per band.""")
     self.vertBox.Layout()	# This destroys the initialized sash position!
     self.sliderYs.SetValue(self.screen.y_scale)
     self.sliderYz.SetValue(self.screen.y_zero)
+    self.sliderZo.SetValue(self.screen.zoom_control)
     if name == 'WFall':
       self.screen.SetSashPosition(sash)
   def OnBtnFileRecord(self, event):
@@ -4929,14 +4974,21 @@ The new code supports multiple corrections per band.""")
       elif self.multi_rx_screen.rx_zero == self.graph:
         self.graphScaleZ[self.lastBand] = (self.graph.y_scale, self.graph.y_zero)
   def OnChangeZoom(self, event):
-    x = self.sliderZo.GetValue()
-    if x < 50:
+    zoom_control = self.sliderZo.GetValue()
+    if self.screen == self.bandscope_screen:
+      self.bandscope_screen.ChangeZoom(zoom_control)
+      self.bandscope_screen.SetTxFreq(self.txFreq, self.rxFreq)
+      return
+    # The display runs from f1 to f2. The original sample rate is "rate".
+    # The new effective sample rate is rate * zoom.
+    # f1 = deltaf + rate * (1 - zoom) / 2
+    if zoom_control < 50:
       self.zoom = 1.0	# change back to not-zoomed mode
       self.zoom_deltaf = 0
       self.zooming = False
     else:
       a = 1000.0 * self.sample_rate / (self.sample_rate - 2500.0)
-      self.zoom = 1.0 - x / a
+      self.zoom = 1.0 - zoom_control / a
       if not self.zooming:		# set deltaf when zoom mode starts
         center = self.multi_rx_screen.graph.filter_center
         freq = self.rxFreq + center
@@ -4944,10 +4996,8 @@ The new code supports multiple corrections per band.""")
         self.zooming = True
     zoom = self.zoom
     deltaf = self.zoom_deltaf
-    self.graph.ChangeZoom(zoom, deltaf)
-    self.waterfall.pane1.ChangeZoom(zoom, deltaf)
-    self.waterfall.pane2.ChangeZoom(zoom, deltaf)
-    self.waterfall.pane2.display.ChangeZoom(zoom, deltaf)
+    self.graph.ChangeZoom(zoom, deltaf, zoom_control)
+    self.waterfall.ChangeZoom(zoom, deltaf, zoom_control)
     self.screen.SetTxFreq(self.txFreq, self.rxFreq)
     self.station_screen.Refresh()
   def OnLevelVOX(self, event):
@@ -5851,7 +5901,7 @@ The new code supports multiple corrections per band.""")
         self.SetPTT(False)
     self.timer = time.time()
     if self.bandscope_clock:		# Hermes UDP protocol
-      data = QS.get_graph(2, 1.0, 0)
+      data = QS.get_bandscope(self.bandscope_clock, self.bandscope_screen.zoom, float(self.bandscope_screen.zoom_deltaf))
       if data and self.screen == self.bandscope_screen:
         self.screen.OnGraphData(data)
     if self.screen == self.scope:

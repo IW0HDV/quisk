@@ -7,14 +7,12 @@ from __future__ import division
 import os,sys
 os.environ['PATH'] = os.path.dirname(__file__) + ';' + os.environ['PATH']
 
-#import array
-#import socket               # Import socket module
-from afedri import *
-#import afedri
+import afedrinet
+import afedrinet.afedri
 
 class Control:
   def __init__(self, sdr_address="192.168.0.8", sdr_port=50000):
-        self.hw = afedri(sdr_address, sdr_port)
+        self.hw = afedrinet.afedri.afedri(sdr_address, sdr_port)
         if self.hw.s is None:	# Failure to find the hardware
                 self.hw = None
   def OpenHW(self):

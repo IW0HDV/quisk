@@ -41,6 +41,7 @@ quisk.py
 quisk_conf_defaults.py
 quisk_conf_kx3.py
 quisk_conf_model.py
+quisk_conf_openradio.py
 quisk_conf_peaberry.py
 quisk_conf_sdr8600.py
 quisk_conf_sdriq.py
@@ -50,10 +51,12 @@ quisk_hardware_hamlib.py
 quisk_hardware_model.py
 quisk_hardware_sdr8600.py
 quisk_hardware_sdriq.py
+quisk_hardware_sdrmicron.py
 quisk_utils.py
 quisk_vna.py
 quisk_widgets.py
 setup.py
+softrock_tune_vfo.py
 sound.c
 sound_alsa.c
 sound_directx.c
@@ -86,6 +89,7 @@ winsound.txt
 ./quisk_conf_defaults.py
 ./quisk_conf_kx3.py
 ./quisk_conf_model.py
+./quisk_conf_openradio.py
 ./quisk_conf_peaberry.py
 ./quisk_conf_sdr8600.py
 ./quisk_conf_sdriq.py
@@ -95,9 +99,11 @@ winsound.txt
 ./quisk_hardware_model.py
 ./quisk_hardware_sdr8600.py
 ./quisk_hardware_sdriq.py
+./quisk_hardware_sdrmicron.py
 ./quisk_utils.py
 ./quisk_vna.py
 ./quisk_widgets.py
+./softrock_tune_vfo.py
 ./windows.txt
 ./winsound.txt
 ./afedrinet/SOURCE.txt
@@ -162,12 +168,11 @@ winsound.txt
 ./softrock/widgets_tx.py
 afedrinet/SOURCE.txt
 afedrinet/__init__.py
-afedrinet/af_comp.bat
+afedrinet/af_comp.bat.makeit
 afedrinet/afe_library
 afedrinet/afe_library.mac
 afedrinet/afedri.py
 afedrinet/afedrinet_io.c
-afedrinet/afedrinet_io.pyd
 afedrinet/quisk_conf.py
 afedrinet/quisk_conf_linux.py
 afedrinet/quisk_conf_mac.py

@@ -71,6 +71,7 @@ class Hardware(BaseHardware):
     self.SetControlByte(0x10, 1, (value >> 2) & 0xFF)	# cw_hang_time
     self.SetLowPwrEnable(conf.hermes_lowpwr_tr_enable)
     self.EnablePowerAmp(conf.hermes_power_amp)
+    self.ChangeTxLNA(conf.hermes_TxLNA_dB)
     self.MakePowerCalibration()
   def pre_open(self):
     # This socket is used for the Metis Discover protocol
@@ -395,8 +396,10 @@ class Hardware(BaseHardware):
     btn = event.GetEventObject()
     if btn.GetValue():
       QS.set_PTT(1)
+      QS.set_key_down(1)
     else:
       QS.set_PTT(0)
+      QS.set_key_down(0)
   def OnSpot(self, level):
     # level is -1 for Spot button Off; else the Spot level 0 to 1000.
     pass
@@ -437,9 +440,9 @@ class Hardware(BaseHardware):
     QS.pc_to_hermes(self.pc2hermes)
     if DEBUG: print ("Change AGC to", value)
   ## Simpler LNA setting for HL2 identifying as version >=40, see HL2 wiki for details
-  def ChangeLNA(self, value):
+  def ChangeLNA(self, value):		# LNA for Rx
     # value is -12 to +48
-    if self.hermes_code_version < 40:
+    if self.hermes_code_version < 40:	# Is this correct ??
       if value < 20:
         self.pc2hermes[2] |= 0x08			# C0 index == 0, C3[3]: LNA +32 dB disable == 1
         value = 19 - value
@@ -451,6 +454,12 @@ class Hardware(BaseHardware):
     self.pc2hermes[4 * 10 + 3] = value			# C0 index == 0x1010, C4[4:0] LNA 0-32 dB gain
     QS.pc_to_hermes(self.pc2hermes)
     if DEBUG: print ("Change LNA to", value)
+  def ChangeTxLNA(self, value):		# LNA for Tx
+    # value is -12 to +48
+    value = ((value+12) & 0x3f) | 0x40 | 0x80
+    self.SetControlByte(0x0e, 3, value)		# C0 index == 0x0e, C3
+    QS.pc_to_hermes(self.pc2hermes)
+    if DEBUG: print ("Change Tx LNA to", value)
   def SetTxLevel(self):
     try:
       tx_level = self.conf.tx_level[self.band]
