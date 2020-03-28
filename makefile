@@ -20,6 +20,9 @@ soapy2:
 soapy3:
 	(cd soapypkg; make soapy3)
 
+perseus2:
+	(cd perseuspkg; make perseus2)
+
 perseus3:
 	(cd perseuspkg; make perseus3)
 
