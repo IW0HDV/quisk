@@ -7,7 +7,6 @@ WinQuisk.pyw
 WinQuiskVna.pyw
 __init__.py
 __main__.py
-_quisk.pyd
 configure.py
 defaults.html
 docs.html
@@ -51,7 +50,6 @@ quisk_hardware_hamlib.py
 quisk_hardware_model.py
 quisk_hardware_sdr8600.py
 quisk_hardware_sdriq.py
-quisk_hardware_sdrmicron.py
 quisk_utils.py
 quisk_vna.py
 quisk_widgets.py
@@ -99,7 +97,6 @@ winsound.txt
 ./quisk_hardware_model.py
 ./quisk_hardware_sdr8600.py
 ./quisk_hardware_sdriq.py
-./quisk_hardware_sdrmicron.py
 ./quisk_utils.py
 ./quisk_vna.py
 ./quisk_widgets.py
@@ -151,6 +148,11 @@ winsound.txt
 ./n2adr/uhf_conf.py
 ./n2adr/uhf_hardware.py
 ./n2adr/uhf_widgets.py
+./perseuspkg/README.txt
+./perseuspkg/__init__.py
+./perseuspkg/quisk_hardware.py
+./perseuspkg/quisk_widgets.py
+./perseuspkg/setup.py
 ./sdriqpkg/README.txt
 ./sdriqpkg/__init__.py
 ./sdriqpkg/quisk_hardware.py
@@ -217,6 +219,13 @@ n2adr/uhf_conf.py
 n2adr/uhf_hardware.old
 n2adr/uhf_hardware.py
 n2adr/uhf_widgets.py
+perseuspkg/README.txt
+perseuspkg/__init__.py
+perseuspkg/makefile
+perseuspkg/perseus.c
+perseuspkg/quisk_hardware.py
+perseuspkg/quisk_widgets.py
+perseuspkg/setup.py
 quisk.egg-info/PKG-INFO
 quisk.egg-info/SOURCES.txt
 quisk.egg-info/dependency_links.txt
@@ -228,6 +237,7 @@ sdriqpkg/quisk_hardware.py
 sdriqpkg/sdriq.c
 sdriqpkg/sdriq.h
 sdriqpkg/sdriq.pyd
+sdrmicronpkg/quisk_hardware.py
 soapypkg/__init__.py
 soapypkg/makefile
 soapypkg/quisk_hardware.py

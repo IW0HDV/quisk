@@ -1,3 +1,12 @@
+Quisk Version 4.1.54  March 2020
+================================
+There are now two new radios available in Quisk. David Fainitski contributed code for the Sdr Micron,
+and Andrea Montefusco IW0HDV contributed code for the Perseus SDR. The radios should appear on the
+list of supported radios in Config/Radios screen. Check the Config/radio/Hardware screen to see if you
+need any more options. Please test these radios to make sure everything is working.
+
+I added a general way to add new radios to the configuration screens. See docs.html under Custom Hardware.
+
 Quisk Version 4.1.53  March 2020
 ================================
 I changed the Afedri radio module to be compatible with Python3. The graph Zoom feature now is available
@@ -8,7 +17,7 @@ noise floor such as PlutoSDR. You will have to readjust your waterfall colors.
 
 I added a hardware setting for the LNA gain during transmit for the HL2. I made some changes to the CW
 and PTT hardware interface for the HL2. These work great with the HL2, but test the new code if you have
-diferent Hermes hardware such as Red Pitaya.
+different Hermes hardware such as Red Pitaya.
 
 Quisk Version 4.1.52  December 2019
 ===================================

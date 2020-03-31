@@ -50,6 +50,7 @@ div.contents {
 <li><a href="#Configuration">Configuration</a></li>
 <li><a href="#SoundCards">Sound Cards</a></li>
 <li><a href="#SDRIQ">SDR-IQ</a></li>
+<li><a href="#Perseus">Perseus</a></li>
 <li><a href="#Timing">Timing</a></li>
 <li><a href="#USBControl">USB Control</a></li>
 <li><a href="#CustomHardware">Custom Hardware</a></li>
@@ -80,6 +81,7 @@ complete transceiver. Quisk works with this hardware:
 <li>SoftRock connected to the sound card</li>
 <li>Many other SDR's connected to the sound card</li>
 <li>SDR-IQ connected by USB</li>
+<li>Perseus connected by USB</li>
 <li>N2ADR hardware connected by Ethernet and IP</li>
 <li>HiQSDR hardware connected by Ethernet and IP</li>
 <li>The Hermes-Lite project at <a href="http://hermeslite.com">hermeslite.com</a></li>
@@ -874,6 +876,35 @@ In earlier versions of Windows, port names are COM1, COM2 etc. and use the "USB 
 Windows should find this driver by itself.
 </p>
 <br>
+<h2 id="Perseus">Perseus as Input </h2>
+<p>
+Quisk can use an Perseus HF receiver from Microtelecom instead of a sound card as input.
+Set up a radio of type Perseus. The Perseus uses a native USB interface to connect to Quisk.
+The Quisk perseuspkg extension relies on <a href="http://github.com/Microtelecom/libpserseus-sdr">libperseus-sdr</a>
+ open source library to manage Perseus hardware and receive the I/Q samples stream.
+</p>
+<br>
+<p>
+Follow the instruction into GitHub repository to compile and install the library.
+On Suse distribution the library is available as binary package.
+Next compile the perseuspkg using the command:
+</p>
+<br>
+<pre>
+make perseus3
+</pre>
+</br>
+<p>
+The several sample rates can be selected opening Config panel: in
+the Config tab there is the Samples rates dropdown.
+</p>
+The input analog filter can be switched in using the button Wideband.<br>
+The input attenuator is operate via the button RF, that allows to select
+the four attenuator steps.<br>
+The ADC commands for dithering and preamplifier are found on 
+left bottom corner as ADC Dither and ADC Preamp.<br>
+</p>
+<br>
 <h2 id="Timing">Timing </h2>
 <br>
 There are several configuration parameters devoted to tuning; read the
@@ -987,6 +1018,7 @@ The HeartBeat() function is called at about 10 Hz by Quisk. You
 can put code there to poll a serial port or to perform other
 housekeeping functions (try to be efficient). The two remaining
 functions deserve more documentation.
+<br>
 <br>
 <h3 id="g0.8.1">ChangeFrequency(self, tune, vfo, source='', band='', event=None)</h3>
 Quisk calls the ChangeFrequency() function when the user changes the Tx
@@ -1117,6 +1149,29 @@ return the new frequencies from ReturnFrequency() or else Quisk will be
 unaware of the change.
 <br>
 
+<br>
+<h3 id="g0.8.3">Adding Custom Hardware to the Config/Radios Screen</h3>
+Once you write your own hardware file for your custom hardware, you still need to add it to the
+list of available radio types, and add its configuration options to its Config/radios/Hardware screen.
+First create a subdirectory of the Quisk directory with a name ending in "pkg"; for example,
+"myradiopkg". Then put your hardware file in this subdirectory with the name "quisk_hardware.py".
+You will need at least one configuration option to specify the hardware file name.
+Add this code (all comments) near the top of quisk_hardware.py:
+<pre>
+
+# Define the name of the hardware and the items on the hardware screen (see quisk_conf_defaults.py):
+################ Receivers MyRadio, The special radio that I own
+## hardware_file_name		Hardware file path, rfile
+# This is the file that contains the control logic for each radio.
+#hardware_file_name = 'myradiopkg/quisk_hardware.py'
+
+</pre>
+Of course, change the names of the radio and subdirectory as appropriate. Your radio of general type "MyRadio"
+will now appear in the list of radios on the Config/Radios screen, and its configuration items will appear
+on the Config/radio/Hardware screen. You can add additional items. See quisk_conf_defaults.py and the *pkg
+subdirectories for examples.
+
+<br>
 <br>
 <h2 id="ExtensionPackages">Extension Packages </h2>
 Quisk comes with two extension packages. The freedvpkg package

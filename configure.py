@@ -157,8 +157,16 @@ class Configuration:
       try:
         if fmt4 == 'text':	# Note: JSON returns Unicode strings !!!
           setattr(conf, k, v)
-        elif fmt4 in ('dict', 'list'):
-          setattr(conf, k, v)
+        elif fmt4 == 'dict':
+          if isinstance(v, dict):
+            setattr(conf, k, v)
+          else:
+            raise ValueError()
+        elif fmt4 == 'list':
+          if isinstance(v, list):
+            setattr(conf, k, v)
+          else:
+            raise ValueError()
         elif fmt4 == 'inte':
           setattr(conf, k, int(v, base=0))
         elif fmt4 == 'numb':
@@ -448,13 +456,27 @@ class Configuration:
     #     Then some help text starting with "# "
     #     Then a list of possible value#explain with the default first
     #     Then a blank line to end.
-
     self.format4name = {}
     self.format4name['hardware_file_type'] = 'text'
+    self._ParserConf('quisk_conf_defaults.py')
+    # Read any user-defined radio types
+    for dirname in os.listdir('.'):
+      if not os.path.isdir(dirname) or dirname[-3:] != 'pkg':
+        continue
+      if dirname in ('freedvpkg', 'sdriqpkg', 'soapypkg'):
+        continue
+      filename = os.path.join(dirname, 'quisk_hardware.py')
+      if not os.path.isfile(filename):
+        continue
+      try:
+        self._ParserConf(filename)
+      except:
+        traceback.print_exc()
+  def _ParserConf(self, filename):
     re_AeqB = re.compile("^#?(\w+)\s*=\s*([^#]+)#*(.*)")		# item values "a = b"
     section = None
     data_name = None
-    fp = open("quisk_conf_defaults.py", "r")
+    fp = open(filename, "r")
     for line in fp:
       line = line.strip()
       if not line:
@@ -486,7 +508,7 @@ class Configuration:
         value_list = []
         if data_name in self.format4name:
           if self.format4name[data_name] != fmt:
-            print ("Inconsistent format for", data_name, self.format4name[data_name], fmt)
+            print (filename, ": Inconsistent format for", data_name, self.format4name[data_name], fmt)
         else:
           self.format4name[data_name] = fmt
         section_data.append([data_name, dspl, fmt, '', value_list])
@@ -495,7 +517,7 @@ class Configuration:
       mo = re_AeqB.match(line)
       if mo:
         if data_name != mo.group(1):
-          print ("Parse error for", data_name)
+          print (filename, ": Parse error for", data_name)
           continue
         value = mo.group(2).strip()
         expln = mo.group(3).strip()

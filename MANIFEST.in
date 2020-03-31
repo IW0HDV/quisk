@@ -7,4 +7,6 @@ graft    n2adr
 graft    sdriqpkg
 graft    softrock
 graft    soapypkg
+graft    sdrmicronpkg
+graft    perseuspkg
 global-exclude *.pyc
