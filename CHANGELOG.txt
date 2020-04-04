@@ -1,3 +1,9 @@
+Quisk Version 4.1.55  April 2020
+================================
+The new Sdr Micron radio was missing from the Windows version of Quisk. There are reports that the item
+Hermes_BandDictTx is damaged in the quisk_settings.json file. Quisk will now fix this itself. The item is
+the "Tx IO Bus" on the Hermes Bands configuration screen.
+
 Quisk Version 4.1.54  March 2020
 ================================
 There are now two new radios available in Quisk. David Fainitski contributed code for the Sdr Micron,

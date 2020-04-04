@@ -191,6 +191,7 @@ class Configuration:
         else:
           print ("Unknown format for", k, fmt)
       except:
+        self.settings_changed = True
         errors = errors + "Failed to set %s to %s using format %s\n" % (k, v, fmt)
         #traceback.print_exc()
     if conf.color_scheme == 'B':

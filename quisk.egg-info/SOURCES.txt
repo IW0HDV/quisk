@@ -156,6 +156,8 @@ winsound.txt
 ./sdriqpkg/README.txt
 ./sdriqpkg/__init__.py
 ./sdriqpkg/quisk_hardware.py
+./sdrmicronpkg/__init__.py
+./sdrmicronpkg/quisk_hardware.py
 ./soapypkg/__init__.py
 ./soapypkg/quisk_hardware.py
 ./soapypkg/setup.py
@@ -237,6 +239,7 @@ sdriqpkg/quisk_hardware.py
 sdriqpkg/sdriq.c
 sdriqpkg/sdriq.h
 sdriqpkg/sdriq.pyd
+sdrmicronpkg/__init__.py
 sdrmicronpkg/quisk_hardware.py
 soapypkg/__init__.py
 soapypkg/makefile
