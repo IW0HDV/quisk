@@ -1,3 +1,9 @@
+Quisk Version 4.1.56  April 2020
+================================
+For Linux, if the file /usr/include/portaudio.h is absent, portaudio will not be included in Quisk.
+This change makes portaudio optional. The change was needed because portaudio breaks wine. Quisk now
+restores the correct frequency for the 60 meter band. There were some other bug fixes.
+
 Quisk Version 4.1.55  April 2020
 ================================
 The new Sdr Micron radio was missing from the Windows version of Quisk. There are reports that the item

@@ -1670,7 +1670,7 @@ freedv_tx_msg = ''
 # This is the list of FreeDV modes and their index number.  The starting mode is the first listed.
 freedv_modes = (('Mode 1600', 0), ('Mode 700', 1), ('Mode 700B', 2),
 		# ('Mode 2400A', 3), ('Mode 2400B', 4), ('Mode 800XA', 5),
-		('Mode 700C', 6), ('Mode 700D', 7), ('Future8', 8), ('Future9', 9))
+		('Mode 700C', 6), ('Mode 700D', 7), ('Mode 2020', 8), ('Future9', 9), ('Future10', 10))
 
 # These are the filter bandwidths for each mode.  Quisk has built-in optimized filters
 # for these values, but you can change them if you want.

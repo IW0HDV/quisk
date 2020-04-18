@@ -191,6 +191,7 @@ class Configuration:
         else:
           print ("Unknown format for", k, fmt)
       except:
+        del radio_dict[k]
         self.settings_changed = True
         errors = errors + "Failed to set %s to %s using format %s\n" % (k, v, fmt)
         #traceback.print_exc()
@@ -286,7 +287,7 @@ class Configuration:
   def GetWidgets(self, app, hardware, conf, frame, gbs, vertBox):	# Called fifth
     if Settings[1] == "ConfigFileRadio":
       return False
-    path = self.GetRadioDict()["widgets_file_name"]
+    path = self.GetRadioDict().get("widgets_file_name", '')
     path = self.NormPath(path)
     if os.path.isfile(path):
       dct = {}
@@ -1143,7 +1144,7 @@ class BaseWindow(wx.ScrolledWindow):
     return ok
   def EvalItem(self, value, fmt4):		# Return Python integer, number, boolean, text
     # return is (item_is_ok, evaluated_item)
-    if fmt4 in ('text', 'rfil'):	# text items are always OK
+    if fmt4 not in ('inte', 'numb', 'bool'):	# only certain formats are evaluated
       return True, value
     jj = value.find('#')
     if jj > 0:
@@ -1159,7 +1160,7 @@ class BaseWindow(wx.ScrolledWindow):
         else:
           v = False
       else:
-        return False, None
+        raise ValueError
     except:
       dlg = wx.MessageDialog(None,
         "Can not set item with format %s to value %s" % (fmt4, value),

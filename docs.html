@@ -255,7 +255,7 @@ sudo apt-get install libfftw3-dev
 <br>
 sudo apt-get install libasound2-dev
 <br>
-sudo apt-get install portaudio19-dev
+sudo apt-get install portaudio19-dev	# Optional, if you want portaudio support
 <br>
 sudo apt-get install libpulse-dev
 <br>
@@ -451,7 +451,7 @@ _quisk.so and _quisk.pyd.
 </ul>
 <ul>
 
-<li>sound_portaudio.c is the sound card access code for PortAudio. </li>
+<li>sound_portaudio.c is the sound card access code for PortAudio. PortAudio is optional.</li>
 </ul>
 <ul>
 
@@ -693,15 +693,9 @@ more information.
 <br>
 
 <br>
-The
-PortAudio
-interface is newer, may be easier to get working, and may be used to
-connect Quisk to other programs (I have not tried this). But for
-CW, ALSA
-has
-lower latency. Run "python portaudio.py" in a terminal window to
-see a list of available names, or use
-a different PortAudio tool. Here are some PortAudio names:
+The PortAudio interface is now optional. Many users are changing to PulseAudio.
+You can run "python portaudio.py" in a terminal window to
+see a list of available PortAudio names. Here are some PortAudio names:
 <br>
 <pre>"portaudio:(hw:0,0)"    First sound card.
 "portaudio:(hw:1,0)"    Second sound card, etc.

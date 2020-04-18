@@ -1101,7 +1101,7 @@ class RadioButtonGroup:
       button.button.command = self.OnButton
     else:
       button.command = self.OnButton
-  def SetLabel(self, label, do_cmd=False):
+  def SetLabel(self, label, do_cmd=False, direction=None):
     self.button = None
     for b in self.buttons:
       if self.button is not None:
@@ -1116,6 +1116,8 @@ class RadioButtonGroup:
           b.SetIndex(index)
           self.button = b
           b.SetValue(True)
+          if direction is not None:
+            b.direction = direction
       elif b.GetLabel() == label:
         b.SetValue(True)
         self.button = b

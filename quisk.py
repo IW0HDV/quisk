@@ -3717,7 +3717,7 @@ class App(wx.App):
     self.mode = conf.default_mode
     self.color_list = None
     self.color_index = 0
-    self.vardecim_set = None
+    self.vardecim_set = 48000
     self.w_phase = None
     self.zoom = 1.0
     self.filter_bandwidth = 1000    # filter bandwidth
@@ -3976,7 +3976,7 @@ The new code supports multiple corrections per band.""")
     self.OpenSound()
     tune, vfo = Hardware.ReturnFrequency()	# Request initial frequency
     if tune is None or vfo is None:		# Set last-used frequency
-      self.bandBtnGroup.SetLabel(self.lastBand, do_cmd=True)
+      self.bandBtnGroup.SetLabel(self.lastBand, do_cmd=True, direction=0)
     else:			# Set requested frequency
       self.BandFromFreq(tune)
       self.ChangeDisplayFrequency(tune - vfo, vfo)

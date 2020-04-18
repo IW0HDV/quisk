@@ -433,7 +433,11 @@ int read_sound_interface(
    switch( dev->driver )
    {
       case DEV_DRIVER_PORTAUDIO:
+#ifdef QUISK_NO_PORTAUDIO
+         nSamples = 0;
+#else
          nSamples = quisk_read_portaudio(dev, cSamples);
+#endif
          break;
       case DEV_DRIVER_ALSA:
          nSamples = quisk_read_alsa(dev, cSamples);
@@ -505,7 +509,9 @@ void play_sound_interface(
    switch( dev->driver )
    {
       case DEV_DRIVER_PORTAUDIO:
+#ifndef QUISK_NO_PORTAUDIO
          quisk_play_portaudio(dev, nSamples, cSamples, report_latency, volume);
+#endif
          break;
       case DEV_DRIVER_ALSA:
          quisk_play_alsa(dev, nSamples, cSamples, report_latency, volume);
@@ -860,7 +866,9 @@ void quisk_close_sound(void)	// Called from sound thread
 #ifdef MS_WINDOWS
 	int cleanup = radio_sound_socket != INVALID_SOCKET || radio_sound_mic_socket != INVALID_SOCKET;
 #endif
+#ifndef QUISK_NO_PORTAUDIO
 	quisk_close_sound_portaudio();
+#endif
 	quisk_close_sound_alsa(CaptureDevices, PlaybackDevices);
 	quisk_close_sound_pulseaudio();
 	if (pt_sample_stop)
@@ -1168,7 +1176,9 @@ void quisk_start_sound(void)	// Called from sound thread
 	decide_drivers(PlaybackDevices);
    
 	// Let the drivers see the devices and start them up if appropriate
+#ifndef QUISK_NO_PORTAUDIO
 	quisk_start_sound_portaudio(CaptureDevices, PlaybackDevices);
+#endif
 	quisk_start_sound_pulseaudio(CaptureDevices, PlaybackDevices);
 	quisk_start_sound_alsa(CaptureDevices, PlaybackDevices);
    

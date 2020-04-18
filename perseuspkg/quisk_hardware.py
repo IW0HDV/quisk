@@ -161,12 +161,13 @@ class Hardware(BaseHardware):
       print ("perseus hardware: VarDecimSet: index: %s" % (index))
       if index == None:
           print ("perseus hardware: VarDecimSet: current sampling rate: %d" % self.current_rate)
-          new_rate = self.current_rate
+          new_rate = self.current_rate = self.application.vardecim_set
       else:
           new_rate = self.rates[index]
 
       print ("perseus hardware: VarDecimSet: New sampling rate: %d" % new_rate)
       perseus.set_sampling_rate(int(new_rate))
+      self.current_rate = int(new_rate)
 
       return int(new_rate)
 

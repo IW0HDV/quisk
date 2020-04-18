@@ -8,7 +8,7 @@ import struct
 # You must define the version here.  A title string including
 # the version will be written to __init__.py and read by quisk.py.
 
-Version = '4.1.55'
+Version = '4.1.56'
 
 fp = open("__init__.py", "w")	# write title string
 fp.write("#Quisk version %s\n" % Version)
@@ -16,6 +16,7 @@ fp.close()
 
 is_64bit = struct.calcsize("P") == 8
 
+have_portaudio = False
 if sys.platform != "win32":
   try:
     import wx
@@ -25,16 +26,26 @@ if sys.platform != "win32":
     print ("Please install the package libfftw3-dev")
   if not os.path.isdir("/usr/include/alsa"):
     print ("Please install the package libasound2-dev")
-  if not os.path.isfile("/usr/include/portaudio.h"):
-    print ("Please install the package portaudio19-dev")
+  if os.path.isfile("/usr/include/portaudio.h"):
+    have_portaudio = True
   if not os.path.isdir("/usr/include/pulse"):
     print ("please install the package libpulse-dev")
 
+libraries = ['asound', 'pulse', 'fftw3', 'm']
+sources = ['quisk.c', 'sound.c', 'sound_alsa.c', 'sound_pulseaudio.c',
+	'is_key_down.c', 'microphone.c', 'utility.c',
+	'filter.c', 'extdemod.c', 'freedv.c']
+define_macros = []
+if have_portaudio:
+	libraries.append('portaudio')
+	sources.append('sound_portaudio.c')
+else:
+	define_macros.append(("QUISK_NO_PORTAUDIO", None))
+
 module1 = Extension ('quisk._quisk',
-	libraries = ['asound', 'portaudio', 'pulse', 'fftw3', 'm'],
-	sources = ['quisk.c', 'sound.c', 'sound_alsa.c', 'sound_portaudio.c', 'sound_pulseaudio.c',
-		'is_key_down.c', 'microphone.c', 'utility.c',
-		'filter.c', 'extdemod.c', 'freedv.c'],
+	libraries = libraries,
+	sources = sources,
+	define_macros = define_macros,
 	)
 
 module2 = Extension ('quisk.sdriqpkg.sdriq',
