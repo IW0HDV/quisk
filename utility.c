@@ -126,7 +126,8 @@ double QuiskTimeSec(void)
 }
 
 int QuiskDeltaMsec(int timer)
-{  // return the number of milliseconds since the last call for the timer
+{  // return the number of milliseconds since the last call for the timer.
+   // There are two timers. The "timer" is either 0 or 1. Call first and throw away the result.
 	static long long time0[2] = {0, 0};
 	long long now;
 	int delta;

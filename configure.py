@@ -896,9 +896,9 @@ class BaseWindow(wx.ScrolledWindow):
     if col < 0:
       pass
     elif span is None:
-      self.gbs.Add(bsizer, (self.row, col), flag = wx.ALIGN_LEFT)
+      self.gbs.Add(bsizer, (self.row, col), flag = 0)
     else:
-      self.gbs.Add(bsizer, (self.row, col), span=(1, span), flag = wx.ALIGN_LEFT)
+      self.gbs.Add(bsizer, (self.row, col), span=(1, span), flag = 0)
     return bsizer
   def AddTextEditHelp(self, col, text1, text2, help_text, border=2, span1=1, span2=1):
     txt = wx.StaticText(self, -1, text1)
@@ -922,7 +922,7 @@ class BaseWindow(wx.ScrolledWindow):
   def AddTextButtonHelp(self, col, text, butn_text, handler, help_text):
     border = 1
     txt = wx.StaticText(self, -1, text)
-    self.gbs.Add(txt, (self.row, col), flag = wx.ALIGN_LEFT)
+    self.gbs.Add(txt, (self.row, col), flag = 0)
     btn = QuiskPushbutton(self, handler, butn_text)
     btn.SetColorGray()
     h = self.quisk_height + 2
@@ -1114,7 +1114,7 @@ class BaseWindow(wx.ScrolledWindow):
       local_conf.settings_changed = True
       # Immediate changes
       if self.radio_name == Settings[1]:	# changed for current radio
-        if name in ('hot_key_ptt_toggle', 'hot_key_ptt_if_hidden', 'keyupDelay'):
+        if name in ('hot_key_ptt_toggle', 'hot_key_ptt_if_hidden', 'keyupDelay', 'cwTone'):
           setattr(conf, name, x)
           application.ImmediateChange(name)
         elif name == "reverse_tx_sideband":

@@ -7,6 +7,7 @@ WinQuisk.pyw
 WinQuiskVna.pyw
 __init__.py
 __main__.py
+_quisk.pyd
 configure.py
 defaults.html
 docs.html
@@ -228,6 +229,7 @@ perseuspkg/perseus.c
 perseuspkg/quisk_hardware.py
 perseuspkg/quisk_widgets.py
 perseuspkg/setup.py
+perseuspkg/build/import_quisk_api.o
 quisk.egg-info/PKG-INFO
 quisk.egg-info/SOURCES.txt
 quisk.egg-info/dependency_links.txt

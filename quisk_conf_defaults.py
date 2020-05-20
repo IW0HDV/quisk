@@ -1262,6 +1262,7 @@ freq_base = 0
 
 ## cwTone               CW tone frequency in Hertz, integer
 # This is the CW tone frequency in Hertz.
+# Changes are immediate (no need to restart).
 cwTone = 600
 #cwTone = 400
 #cwTone = 800

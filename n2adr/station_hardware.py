@@ -30,6 +30,7 @@ class ControlBox:	# Control my station control box
       time.sleep(0.1)
       self.socket.send(self.want_data)
   def OnButtonPTT(self, event):
+    return	# JIM
     btn = event.GetEventObject()
     if btn.GetValue():		# Turn the software key bit on or off
       self.want_data = b'C\001'

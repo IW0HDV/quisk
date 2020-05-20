@@ -1992,8 +1992,6 @@ static int quisk_process_demodulate(complex double * cSamples, double * dsamples
 			process_agc(&Agc1, cSamples, nSamples, 1);
 		else
 			process_agc(&Agc2, cSamples, nSamples, 1);
-		if(bank == 0)
-			dAutoNotch(dsamples, nSamples, 0, quisk_decim_srate / 3);
 		// Perhaps decimate by an additional fraction
 		if (quisk_decim_srate != 48000) {
 			dd = quisk_decim_srate / 48000.0;

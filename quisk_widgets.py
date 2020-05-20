@@ -317,8 +317,8 @@ class SliderBoxV(wx.BoxSizer):
       self.width = max(w2, sw) + self.text_ctrl.GetCharWidth()
       self.text_ctrl.SetSizeHints(self.width, -1, self.width)
     self.text_ctrl.SetForegroundColour(parent.GetForegroundColour())
-    self.Add(self.text_ctrl, 0, wx.ALIGN_CENTER_VERTICAL)
-    self.Add(self.slider, 1, wx.ALIGN_CENTER_VERTICAL)
+    self.Add(self.text_ctrl, 0, 0)
+    self.Add(self.slider, 1, 0)
   def Change(self, event):
     event.Skip()
     self.text_ctrl.SetLabel(str(self.slider.GetValue()))
@@ -396,7 +396,7 @@ class QuiskText(wx.BoxSizer):
   def __init__(self, parent, size_text, height, style=0, fixed=False):
     wx.BoxSizer.__init__(self, wx.HORIZONTAL)
     self.TextCtrl = QuiskText1(parent, size_text, height, style, fixed)
-    self.Add(self.TextCtrl, 1, flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
+    self.Add(self.TextCtrl, 1, flag=wx.ALIGN_CENTER_VERTICAL)
   def SetLabel(self, label):
     self.TextCtrl.SetLabel(label)
 
@@ -859,9 +859,9 @@ class WrapPushButton(WrapControl):
   def __init__(self, button, control):
     self.button = button
     WrapControl.__init__(self)
-    self.Add(button, 1, flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
+    self.Add(button, 1, flag=wx.ALIGN_CENTER_VERTICAL)
     b = QuiskPushbutton(button.GetParent(), control, conf.btn_text_switch)
-    self.Add(b, 0, flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.LEFT, border=2)
+    self.Add(b, 0, flag=wx.ALIGN_CENTER_VERTICAL|wx.LEFT, border=2)
 
 class WrapMenu(WrapControl):
   def __init__(self, button, menu, on_open=None):
@@ -869,9 +869,9 @@ class WrapMenu(WrapControl):
     self.menu = menu
     self.on_open = on_open
     WrapControl.__init__(self)
-    self.Add(button, 1, flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
+    self.Add(button, 1, flag=wx.ALIGN_CENTER_VERTICAL)
     b = QuiskBitmapButton(button.GetParent(), self.OnPopButton, _bitmap_menupop)
-    self.Add(b, 0, flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.LEFT, border=2)
+    self.Add(b, 0, flag=wx.ALIGN_CENTER_VERTICAL|wx.LEFT, border=2)
   def OnPopButton(self, event):
     if self.on_open:
       self.on_open(self.menu)
@@ -894,9 +894,9 @@ class WrapSlider(WrapControl):
     self.display = display					# Display the value at the top
     self.wintype = wintype
     WrapControl.__init__(self)
-    self.Add(button, 1, flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
+    self.Add(button, 1, flag=wx.ALIGN_CENTER_VERTICAL)
     b = QuiskBitmapButton(button.GetParent(), self.OnPopButton, _bitmap_sliderpop)
-    self.Add(b, 0, flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.LEFT, border=2)
+    self.Add(b, 0, flag=wx.ALIGN_CENTER_VERTICAL|wx.LEFT, border=2)
   def SetDual(self, dual):		# dual means separate slider values for on and off
     self.dual = dual
     if self.adjust:
@@ -962,14 +962,14 @@ class WrapDualSlider(WrapControl):	# Thanks to Steve, KF7O
     self.slider_max = slider_max
     self.display = display                  # Display the value at the top
     WrapControl.__init__(self)
-    self.Add(button, 1, flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
+    self.Add(button, 1, flag=wx.ALIGN_CENTER_VERTICAL)
     print("Size",self.button.GetSize())
     ## This is a hack to get _bitmap_sliderpop
     ## It would be better if _bitmap_sliderpop were not a global variable 
     ##but a first-class member in another module
     _bitmap_sliderpop = MakeWidgetGlobals.__globals__['_bitmap_sliderpop']
     b = QuiskBitmapButton(button.GetParent(), self.OnPopButton, _bitmap_sliderpop)
-    self.Add(b, 0, flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.LEFT, border=2)
+    self.Add(b, 0, flag=wx.ALIGN_CENTER_VERTICAL|wx.LEFT, border=2)
   def OnPopButton(self, event):
     if self.adjust:
       self.adjust.Destroy()
@@ -1207,7 +1207,7 @@ class RadioBtnPopup:
     self.first_button = QuiskPushbutton(parent, self.OnFirstButton, labels[0], text_color=conf.color_popchoice)
     self.first_button.decoration = u'\u21D2'
     self.second_button = QuiskBitmapButton(parent, self.OnSecondButton, _bitmap_menupop, use_right=True)
-    self.pop_control.Add(self.first_button, 1, flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
+    self.pop_control.Add(self.first_button, 1, flag=wx.ALIGN_CENTER_VERTICAL)
     self.pop_control.Add(self.second_button, 0, flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.LEFT, border=2)
     self.pop_control.Show(self.second_button, False)
     self.adjust = None
@@ -1291,7 +1291,10 @@ class RadioBtnPopup:
         break
   def GetLabel(self):
     return self.first_button.GetLabel()
-  def SetLabel(self, label, do_cmd=False):
+  def SetLabel(self, label, do_cmd=False, direction=None):
+    direc =  self.first_button.direction
+    if direction is not None:
+      self.first_button.direction = direction
     self.first_button.SetLabel(label)
     self.AddSecondButton(label)
     self.RbDialog.RbGroup.SetLabel(label, False)
@@ -1299,6 +1302,7 @@ class RadioBtnPopup:
       event = wx.PyEvent()
       event.SetEventObject(self.first_button)
       self.pop_command(event)
+    self.first_button.direction = direc
   def Refresh(self):
     pass
   def ChangeSlider(self, slider_value):

@@ -4112,6 +4112,7 @@ The new code supports multiple corrections per band.""")
         self.OnBtnClose()
         QS.close_rx_udp()
         Hardware.close()
+        QS.freedv_close()
       finally:
         wx.EndBusyCursor()
   def ImmediateChange(self, name):
@@ -4551,15 +4552,15 @@ The new code supports multiple corrections per band.""")
       e.SetForegroundColour(conf.color_entry_txt)
       szr = wx.BoxSizer(wx.HORIZONTAL)	# add control to box sizer for centering
       b_freqenter = szr
-      szr.Add(e, 1, flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
+      szr.Add(e, 1, flag=wx.ALIGN_CENTER_VERTICAL)
       frame.Bind(wx.EVT_TEXT_ENTER, self.FreqEntry, source=e)
     # S-meter
-    self.smeter = QuiskText(frame, ' S9+23 -166.00 dB ', bh, wx.ALIGN_LEFT, True)
+    self.smeter = QuiskText(frame, ' S9+23 -166.00 dB ', bh, 0, True)
     b = QuiskPushbutton(frame, self.OnSmeterRightDown, '..')
     szr = wx.BoxSizer(wx.HORIZONTAL)
     b_smeter = szr
-    szr.Add(self.smeter, 1, flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
-    szr.Add(b, 0, flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+    szr.Add(self.smeter, 1, flag=wx.ALIGN_CENTER_VERTICAL)
+    szr.Add(b, 0, flag=wx.ALIGN_CENTER_VERTICAL)
     self.smeter.TextCtrl.Bind(wx.EVT_RIGHT_DOWN, self.OnSmeterRightDown)
     self.smeter.TextCtrl.SetBackgroundColour(conf.color_freq)
     self.smeter.TextCtrl.SetForegroundColour(conf.color_freq_txt)
