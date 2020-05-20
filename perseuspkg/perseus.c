@@ -307,9 +307,9 @@ static PyObject * set_frequency(PyObject * self, PyObject * args)	// Called from
 	if (!PyArg_ParseTuple (args, "f", &param))
 		return NULL;
 	if (DEBUG)
-		fprintf (stderr, "perseus c: set DDC frequency%lf\n", param);
+		fprintf (stderr, "perseus c: set DDC frequency %lf WB filter:%d\n", param, wb_filter);
 	freq= param;
-	if (descr) perseus_set_ddc_center_freq(descr, freq, wb_filter == 0);
+	if (descr) perseus_set_ddc_center_freq(descr, freq, wb_filter);
 
 	Py_INCREF (Py_None);
 	return Py_None;
@@ -323,9 +323,9 @@ static PyObject * set_input_filter(PyObject * self, PyObject * args)	// Called f
 	if (!PyArg_ParseTuple (args, "i", &param))
 		return NULL;
 	if (DEBUG)
-		fprintf (stderr, "perseus c: set input filter%d\n", param);
+		fprintf (stderr, "perseus c: set input filter %d\n", param);
 	wb_filter = param;
-	if (descr) perseus_set_ddc_center_freq(descr, freq, wb_filter == 0);
+	if (descr) perseus_set_ddc_center_freq(descr, freq, wb_filter);
 
 	Py_INCREF (Py_None);
 	return Py_None;

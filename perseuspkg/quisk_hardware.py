@@ -177,9 +177,10 @@ class Hardware(BaseHardware):
 
   def OnButtonAntenna(self, event):
     btn = event.GetEventObject()
-    self.wb_filter = n = btn.index
-    print ("OnButtonAntenna: %d" % n)
-    perseus.set_input_filter (self.wb_filter)
+    n = btn.index
+    if DEBUG: print ("OnButtonAntenna: %d status: %d" % (n, self.wb))
+    self.wb = n
+    perseus.set_input_filter (self.wb)
     
 #  def StartSamples(self):	# called by the sound thread
 #    print("perseus hardware: StartSamples")
