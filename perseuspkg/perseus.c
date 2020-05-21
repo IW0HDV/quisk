@@ -129,7 +129,7 @@ static int user_data_callback_c_f(void *buf, int buf_size, void *extra)
 // Start sample capture; called from the sound thread.
 static void quisk_start_samples(void)
 {
-	fprintf (stderr, "perseus c: quisk_start_samples\n"); fflush(stderr);
+	if (DEBUG) { fprintf (stderr, "perseus c: quisk_start_samples\n"); fflush(stderr); }
 
 	int rc = mkfifo(fname, 0666); 
 	
@@ -138,26 +138,30 @@ static void quisk_start_samples(void)
 	}
 
 	rfd = open(fname, O_RDONLY|O_NONBLOCK); 
-	if (rfd < 0) fprintf(stderr, "perseus c: Can't open read FIFO (%s)\n", strerror(errno));
-	else  fprintf(stderr, "perseus c: read FIFO (%d)\n", rfd);
-
+	if (rfd < 0) {
+		fprintf(stderr, "perseus c: Can't open read FIFO (%s)\n", strerror(errno));
+	} else {
+		if (DEBUG) fprintf(stderr, "perseus c: read FIFO (%d)\n", rfd);
+	}
 	wfd = open(fname, O_WRONLY|O_NONBLOCK);
-	if (wfd < 0) fprintf(stderr, "perseus c: Can't open write FIFO (%s)\n", strerror(errno));
-	else  fprintf(stderr, "perseus c: write FIFO (%d)\n", wfd);
-
+	if (wfd < 0) {
+		fprintf(stderr, "perseus c: Can't open write FIFO (%s)\n", strerror(errno));
+	} else {
+		if (DEBUG) fprintf(stderr, "perseus c: write FIFO (%d)\n", wfd);
+	}
 	if (perseus_set_sampling_rate(descr, sr) < 0) {  // specify the sampling rate value in Samples/second
 		fprintf(stderr, "perseus c: fpga configuration error: %s\n", perseus_errorstr());
 	} else {
-		fprintf(stderr, "perseus c: sampling rate set to: %d\n", sr);
+		if (DEBUG) fprintf(stderr, "perseus c: sampling rate set to: %d\n", sr);
 
 		// Re-enable preselection filters (WB_MODE Off)
 		perseus_set_ddc_center_freq(descr, freq, wb_filter);
 		// start sampling ops
 		if (perseus_start_async_input(descr, nb*bs, user_data_callback_c_f, 0)<0) {
 			fprintf(stderr, "perseus c: start async input error: %s\n", perseus_errorstr());
-		} else
-			fprintf(stderr, "perseus c: start async input\n");
-			
+		} else {
+			if (DEBUG) fprintf(stderr, "perseus c: start async input\n");
+		}
 		running = 1;
 	}
 }
@@ -165,10 +169,10 @@ static void quisk_start_samples(void)
 // Stop sample capture; called from the sound thread.
 static void quisk_stop_samples(void)
 {
-	fprintf (stderr, "perseus c: quisk_stop_samples\n"); fflush(stderr);
+	if (DEBUG) { fprintf (stderr, "perseus c: quisk_stop_samples\n"); fflush(stderr); }
 
 	// We stop the acquisition...
-	fprintf(stderr, "perseus c: stopping async data acquisition...\n");
+	if (DEBUG) fprintf(stderr, "perseus c: stopping async data acquisition...\n");
 	perseus_stop_async_input(descr);
 	running = 0;
 	// clearing FIFO...
@@ -181,7 +185,7 @@ static void quisk_stop_samples(void)
 // Called to close the sample source; called from the GUI thread.
 static PyObject * close_device(PyObject * self, PyObject * args)
 {
-	fprintf (stderr, "perseus c: close_device\n");
+	if (DEBUG) fprintf (stderr, "perseus c: close_device\n");
 	int sample_device; // for now one only Perseus can be managed
 
 	if (!PyArg_ParseTuple (args, "i", &sample_device))
@@ -206,12 +210,11 @@ static PyObject * open_device(PyObject * self, PyObject * args)
 	char buf128[128] = "Capture Microtelecom Perseus HF receiver";
 	eeprom_prodid prodid;
 
-	fprintf (stderr, "perseus c: open device (%d)\n", num_perseus); fflush(stderr);
-	
+	if (DEBUG) { fprintf (stderr, "perseus c: open device (%d)\n", num_perseus); fflush(stderr); }
 
 	// Check how many Perseus receivers are connected to the system
 	if (num_perseus == 0) num_perseus = perseus_init();
-	fprintf(stderr, "perseus c: %d Perseus receivers found\n",num_perseus);
+	if (DEBUG) fprintf(stderr, "perseus c: %d Perseus receivers found\n",num_perseus);
 
 	if (num_perseus == 0) {
 		sprintf(buf128, "No Perseus receivers detected\n");
@@ -227,19 +230,20 @@ static PyObject * open_device(PyObject * self, PyObject * args)
 	}
 
 	// Download the standard firmware to the unit
-	fprintf(stderr, "perseus c: Downloading firmware...\n");
+	if (DEBUG) fprintf(stderr, "perseus c: Downloading firmware...\n");
 	if (perseus_firmware_download(descr,NULL)<0) {
 		sprintf(buf128, "perseus c: firmware download error: %s", perseus_errorstr());
 		goto main_cleanup;
 	}
 	// Dump some information about the receiver (S/N and HW rev)
-	if (perseus_is_preserie(descr, 0) ==  PERSEUS_SNNOTAVAILABLE)
+	if (perseus_is_preserie(descr, 0) ==  PERSEUS_SNNOTAVAILABLE) {
 		fprintf(stderr, "perseus c: The device is a preserie unit");
-	else
-		if (perseus_get_product_id(descr,&prodid)<0) 
+	} else {
+		if (perseus_get_product_id(descr,&prodid)<0) {
 			fprintf(stderr, "perseus c: get product id error: %s", perseus_errorstr());
-		else
-			fprintf(stderr, "perseus c: Receiver S/N: %05d-%02hX%02hX-%02hX%02hX-%02hX%02hX - HW Release:%hd.%hd\n",
+		} else {
+			if (DEBUG) {
+				fprintf(stderr, "perseus c: Receiver S/N: %05d-%02hX%02hX-%02hX%02hX-%02hX%02hX - HW Release:%hd.%hd\n",
 					(uint16_t) prodid.sn, 
 					(uint16_t) prodid.signature[5],
 					(uint16_t) prodid.signature[4],
@@ -249,7 +253,9 @@ static PyObject * open_device(PyObject * self, PyObject * args)
 					(uint16_t) prodid.signature[0],
 					(uint16_t) prodid.hwrel,
 					(uint16_t) prodid.hwver);
-
+			}
+		}
+	}
     // Printing all sampling rates available .....
     {
         int buf[BUFSIZ];
@@ -260,14 +266,14 @@ static PyObject * open_device(PyObject * self, PyObject * args)
         } else {
             int i = 0;
             while (buf[i]) {
-                fprintf(stderr, "perseus c: #%d: sample rate: %d\n", i, buf[i]);
+                if (DEBUG) fprintf(stderr, "perseus c: #%d: sample rate: %d\n", i, buf[i]);
                 i++;
             }
         }
     }
 
 	// Configure the receiver for 2 MS/s operations
-	fprintf(stderr, "perseus c: Configuring FPGA...\n");
+	if (DEBUG) fprintf(stderr, "perseus c: Configuring FPGA...\n");
 	if (perseus_set_sampling_rate(descr, sr) < 0) {  // specify the sampling rate value in Samples/second
 	//if (perseus_set_sampling_rate_n(descr, 0)<0)        // specify the sampling rate value as ordinal in the vector
 		fprintf(stderr, "perseus c: fpga configuration error: %s\n", perseus_errorstr());
@@ -285,7 +291,7 @@ static PyObject * open_device(PyObject * self, PyObject * args)
 	
 	quisk_sample_source4(&quisk_start_samples, &quisk_stop_samples, &quisk_read_samples, &quisk_write_samples);
 	
-	fprintf (stderr, "perseus c: quisk sample source callbacks established\n"); fflush(stderr);
+	if (DEBUG) { fprintf (stderr, "perseus c: quisk sample source callbacks established\n"); fflush(stderr); }
 	goto exit_success;
 
 
@@ -339,13 +345,13 @@ static PyObject * set_sampling_rate(PyObject * self, PyObject * args)	// Called 
 	if (!PyArg_ParseTuple (args, "i", &param))
 		return NULL;
 	
-	fprintf (stderr, "perseus c: Set sampling rate %d\n", param);
+	if (DEBUG) fprintf (stderr, "perseus c: Set sampling rate %d\n", param);
 	if (param < 48000) sr = param * 1000;
 	else sr = param;
 
 	if (descr) {
 		if (running) {
-			fprintf(stderr, "perseus c: stop async input\n");
+			if (DEBUG) fprintf(stderr, "perseus c: stop async input\n");
 			perseus_stop_async_input(descr);
 		}
 
@@ -357,11 +363,12 @@ static PyObject * set_sampling_rate(PyObject * self, PyObject * args)	// Called 
 		if (running) {
 			if (perseus_start_async_input(descr, nb*bs, user_data_callback_c_f, 0)<0) {
 				fprintf(stderr, "perseus c: start async input error: %s\n", perseus_errorstr());
-			} else
-				fprintf(stderr, "perseus c: start async input @%d\n", sr);
+			} else {
+				if (DEBUG) fprintf(stderr, "perseus c: start async input @%d\n", sr);
+			}
 		}
 	} else {
-		fprintf(stderr, "perseus c: tryng to start async input with no device open\n");
+		fprintf(stderr, "perseus c: trying to start async input with no device open\n");
 	}
 	Py_INCREF (Py_None);
 	return Py_None;

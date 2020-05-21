@@ -36,7 +36,7 @@ class Hardware(BaseHardware):
 
     self.vardecim_index = 0
     self.fVFO = 0.0	# Careful, this is a float
-    print ("__init__: %s" % conf)
+    if DEBUG: print ("__init__: %s" % conf)
     self.rates = [ 48000,   \
                    95000,   \
                    96000,   \
@@ -62,7 +62,7 @@ class Hardware(BaseHardware):
       return perseus
 
   def pre_open(self):
-    print ("pre_open")
+    if DEBUG: print ("pre_open")
     pass
 
   def set_parameter(self, *args):
@@ -74,26 +74,26 @@ class Hardware(BaseHardware):
       return "Perseus module not available"
 
     txt = perseus.open_device("perseus",2,3)
-    print ("perseus hardware: open")
+    if DEBUG: print ("perseus hardware: open")
 
     return txt
 
   def close(self):			# Called once to close the Hardware
-    print ("perseus hardware: close")
+    if DEBUG: print ("perseus hardware: close")
     if perseus:
       perseus.close_device(1)
 
   def ChangeGain(self, rxtx):	# rxtx is '_rx' or '_tx'
     if not perseus:
       return
-    print ("perseus hardware: ChangeGain", rxtx)
+    if DEBUG: print ("perseus hardware: ChangeGain", rxtx)
     pass
 
   def OnButtonRfGain(self, event):
     #btn = event.GetEventObject()
     n = event.GetEventObject().index
     self.att = n * -10
-    print ("perseus hardware: OnButtonRfGain: %d new attenuation: %d" % (n, self.att))
+    if DEBUG: print ("perseus hardware: OnButtonRfGain: %d new attenuation: %d" % (n, self.att))
     perseus.set_attenuator (self.att)
 
   def ChangeFrequency(self, tune, vfo, source='', band='', event=None):
@@ -136,7 +136,7 @@ class Hardware(BaseHardware):
 #    pass
 
   def ImmediateChange(self, name, value):
-    print ("perseus hardware: ImmediateChange: perseus: name: %s value: %s" % (name, value))
+    if DEBUG: print ("perseus hardware: ImmediateChange: perseus: name: %s value: %s" % (name, value))
     if name == 'perseus_setSampleRate_rx':
           value = int(value)
           self.application.OnBtnDecimation(rate=value)
@@ -145,7 +145,7 @@ class Hardware(BaseHardware):
 
 
   def VarDecimGetChoices(self):	# Not used to set sample rate
-    print ("perseus hardware: VarDecimGetChoices")
+    if DEBUG: print ("perseus hardware: VarDecimGetChoices")
     return list(map(str, self.rates)) # convert integer to string
 
   def VarDecimGetLabel(self):	# Return a text label for the decimation control.
@@ -160,19 +160,19 @@ class Hardware(BaseHardware):
   def VarDecimSet(self, index=None):	# Called when the control is operated; if index==None, called on startup.
       print ("perseus hardware: VarDecimSet: index: %s" % (index))
       if index == None:
-          print ("perseus hardware: VarDecimSet: current sampling rate: %d" % self.current_rate)
+          if DEBUG: print ("perseus hardware: VarDecimSet: current sampling rate: %d" % self.current_rate)
           new_rate = self.current_rate = self.application.vardecim_set
       else:
           new_rate = self.rates[index]
 
-      print ("perseus hardware: VarDecimSet: New sampling rate: %d" % new_rate)
+      if DEBUG: print ("perseus hardware: VarDecimSet: New sampling rate: %d" % new_rate)
       perseus.set_sampling_rate(int(new_rate))
       self.current_rate = int(new_rate)
 
       return int(new_rate)
 
   def VarDecimRange(self):  # Return the lowest and highest sample rate.
-      print ("perseus hardware: VarDecimRange: %s" % self.rates)
+      if DEBUG: print ("perseus hardware: VarDecimRange: %s" % self.rates)
       return (self.rates[0], self.rates[-1])
 
   def OnButtonAntenna(self, event):
