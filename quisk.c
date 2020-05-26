@@ -4847,6 +4847,61 @@ static PyObject * get_filter(PyObject * self, PyObject * args)
 	return tuple2;
 }
 
+// Return the filename to use for caching fftw wisdom. Returns
+// nullptr on an error, or if insufficient space in buf.
+static const char* quisk_cached_wisdom_filename(const char* buf, int buf_size) {
+	if (!quisk_pyConfig || PyErr_Occurred())
+		return NULL;
+
+	PyObject * globals = PyEval_GetGlobals();
+	PyObject * config_path = PyDict_GetItemString(globals, "DefaultConfigDir");
+	if(!config_path)
+		return NULL;
+
+	const char * res =
+#if PY_MAJOR_VERSION >= 3
+		(char *)PyUnicode_AsUTF8(config_path);
+#else
+		(char *)PyString_AsString(config_path);
+#endif
+
+	const char * WISDOM_FILENAME =
+#ifdef MS_WINDOWS
+		"quisk_wisdom.cache";
+#else
+		".quisk_wisdom.cache";
+#endif
+
+	int path_length = snprintf(buf, buf_size, "%s/%s", res, WISDOM_FILENAME);
+	if(path_length < buf_size)
+		return buf;
+	return NULL;
+}
+
+// Load any pre-existing cache data, which dramatically
+// speeds up creation of an fftw plan
+static void load_cached_fftw_data() {
+	char filename_buffer[1024];
+	const char* wisdom_file = quisk_cached_wisdom_filename(filename_buffer, sizeof(filename_buffer));
+	if(wisdom_file)
+		fftw_import_wisdom_from_filename(wisdom_file);
+}
+
+// Create an fftw plan; attempt to use loaded wisdom cache or update existing cache.
+fftw_plan quisk_create_or_cache_fftw_plan_dft_1d(int fft_size, fftw_complex *in, fftw_complex *out, int sign, unsigned flags) {
+	fftw_plan plan = fftw_plan_dft_1d(fft_size, in, out, sign, flags | FFTW_WISDOM_ONLY);
+	if(!plan) {
+		// Nothing in the wisdom file for this config; create and save new wisdom
+		plan = fftw_plan_dft_1d(fft_size, in, out, sign, flags);
+
+		char filename_buffer[1024];
+		const char* wisdom_file = quisk_cached_wisdom_filename(filename_buffer, sizeof(filename_buffer));
+		if(wisdom_file)
+			fftw_export_wisdom_to_filename(wisdom_file);
+	}
+	return plan;
+}
+
 static void measure_freq(complex double * cSamples, int nSamples, int srate)
 {
 	int i, k, center, ipeak;
@@ -4865,7 +4920,7 @@ static void measure_freq(complex double * cSamples, int nSamples, int srate)
 
 	if ( ! cSamples) {		// malloc new space and initialize
 		samples = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * fft_size);
-		planA = fftw_plan_dft_1d(fft_size, samples, samples, FFTW_FORWARD, FFTW_MEASURE);
+		planA = quisk_create_or_cache_fftw_plan_dft_1d(fft_size, samples, samples, FFTW_FORWARD, FFTW_MEASURE);
 		fft_window = (double *) malloc(sizeof(double) * (fft_size + 1));
 		fft_average = (double *) malloc(sizeof(double) * fft_size);
 		memset(fft_average, 0, sizeof(double) * fft_size);
@@ -5075,6 +5130,7 @@ static PyObject * record_app(PyObject * self, PyObject * args)
 	else
 		is_little_endian = 0;
 	strncpy (quisk_sound_state.err_msg, CLOSED_TEXT, QUISK_SC_SIZE);
+	load_cached_fftw_data();
 	// Initialize space for the FFTs
 	for (i = 0; i < FFT_ARRAY_SIZE; i++) {
 		fft_data_array[i].filled = 0;
@@ -5083,7 +5139,7 @@ static PyObject * record_app(PyObject * self, PyObject * args)
 		fft_data_array[i].samples = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * fft_size);
 	}
 	pt = fft_data_array[0].samples;
-	quisk_fft_plan = fftw_plan_dft_1d(fft_size, pt, pt, FFTW_FORWARD, FFTW_MEASURE);
+	quisk_fft_plan = quisk_create_or_cache_fftw_plan_dft_1d(fft_size, pt, pt, FFTW_FORWARD, FFTW_MEASURE);
 	// Create space for the fft average and window
 	if (fft_window)
 		free(fft_window);
@@ -5097,7 +5153,7 @@ static PyObject * record_app(PyObject * self, PyObject * args)
 	// Initialize plan for multirx FFT
 	multirx_fft_width = multirx_data_width * MULTIRX_FFT_MULT;		// Use larger FFT than graph size
 	multirx_fft_next_samples = (fftw_complex *)malloc(multirx_fft_width * sizeof(fftw_complex));
-	multirx_fft_next_plan = fftw_plan_dft_1d(multirx_fft_width, multirx_fft_next_samples, multirx_fft_next_samples, FFTW_FORWARD, FFTW_MEASURE);
+	multirx_fft_next_plan = quisk_create_or_cache_fftw_plan_dft_1d(multirx_fft_width, multirx_fft_next_samples, multirx_fft_next_samples, FFTW_FORWARD, FFTW_MEASURE);
 	if (current_graph)
 		free(current_graph);
 	current_graph = (double *) malloc(sizeof(double) * data_width);
