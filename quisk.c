@@ -4849,7 +4849,7 @@ static PyObject * get_filter(PyObject * self, PyObject * args)
 
 // Return the filename to use for caching fftw wisdom. Returns
 // nullptr on an error, or if insufficient space in buf.
-static const char* quisk_cached_wisdom_filename(const char* buf, int buf_size) {
+static const char* quisk_cached_wisdom_filename(char* buf, int buf_size) {
 	if (!quisk_pyConfig || PyErr_Occurred())
 		return NULL;
 
